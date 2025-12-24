@@ -37,11 +37,13 @@ export const useScrollAnimation = (options: UseScrollAnimationOptions = {}) => {
     };
   }, [threshold, rootMargin, triggerOnce]);
 
-  return { ref, isVisible };
+  return { ref, elementRef: ref, isVisible };
 };
 
+export default useScrollAnimation;
+
 export const useStaggerAnimation = (itemCount: number, delay: number = 100) => {
-  const { ref, isVisible } = useScrollAnimation();
+  const { ref, elementRef, isVisible } = useScrollAnimation();
 
   const getDelayClass = (index: number) => {
     const delayMs = index * delay;
