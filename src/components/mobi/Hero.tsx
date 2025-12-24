@@ -1,5 +1,6 @@
 import { ArrowRight, Sparkles } from "lucide-react";
 import { useCountAnimation } from "@/hooks/useCountAnimation";
+import heroBgVideo from "@/assets/hero-bg.mp4";
 
 const Hero = () => {
   const yearsCount = useCountAnimation({ end: 8, duration: 2000 });
@@ -14,6 +15,20 @@ const Hero = () => {
 
   return (
     <section id="inicio" className="min-h-screen flex items-center justify-center pt-20 relative overflow-hidden">
+      {/* Background Video */}
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover opacity-40"
+      >
+        <source src={heroBgVideo} type="video/mp4" />
+      </video>
+      
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-background/60" />
+      
       {/* Background Effects */}
       <div className="absolute inset-0 grid-pattern opacity-20" />
       <div className="absolute top-1/4 -left-40 w-80 h-80 bg-primary/20 rounded-full blur-[120px] animate-float-blob-1" />
