@@ -9,27 +9,27 @@ const Timeline = () => {
     {
       year: "2016",
       title: "O Início",
-      description: "Fundação da Rorschach Motion com foco em desenvolvimento web freelance.",
+      description: "Fundação da Rorschach Motion com foco em motion graphics freelance.",
     },
     {
       year: "2018",
       title: "Expansão",
-      description: "Primeiros grandes projetos corporativos e expansão da equipe.",
+      description: "Primeiros grandes projetos de brand animation para empresas nacionais.",
     },
     {
       year: "2020",
-      title: "Mobile First",
-      description: "Entrada no mercado de aplicativos mobile com React Native.",
+      title: "Era 3D",
+      description: "Integração de animação 3D e VFX ao portfólio de serviços.",
     },
     {
       year: "2022",
       title: "Consolidação",
-      description: "Mais de 100 projetos entregues e parcerias estratégicas.",
+      description: "Mais de 150 projetos entregues e parcerias com agências internacionais.",
     },
     {
       year: "2024",
       title: "Inovação",
-      description: "Integração de IA e automação nos processos de desenvolvimento.",
+      description: "Adoção de IA generativa e novas tecnologias de produção visual.",
     },
   ];
 

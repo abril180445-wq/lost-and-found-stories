@@ -16,11 +16,11 @@ const Footer = () => {
   ];
 
   const services = [
-    "Sistemas Web",
-    "Aplicativos Mobile",
-    "APIs e Integrações",
-    "E-commerce",
-    "Consultoria em TI",
+    "Motion Graphics",
+    "Animação 3D",
+    "Brand Animation",
+    "Vídeo & Pós-Produção",
+    "VFX & Composição",
   ];
 
   const socialLinks = [
@@ -56,8 +56,8 @@ const Footer = () => {
               </div>
             </a>
             <p className="text-muted-foreground mb-6 leading-relaxed">
-              Há mais de 8 anos transformando ideias em soluções digitais
-              inovadoras e escaláveis.
+              Há mais de 8 anos transformando marcas em experiências visuais
+              memoráveis através do movimento.
             </p>
             {socialLinks.length > 0 && (
               <div className="flex gap-3">

@@ -1,4 +1,4 @@
-import { Search, Palette, Code, TestTube, Rocket, Workflow } from "lucide-react";
+import { MessageSquare, Palette, Film, Wand2, Rocket, Workflow } from "lucide-react";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 const Process = () => {
@@ -7,34 +7,34 @@ const Process = () => {
 
   const steps = [
     {
-      icon: Search,
-      title: "Discovery",
-      description: "Entendemos seu negócio, objetivos e requisitos. Definimos escopo, funcionalidades e métricas de sucesso.",
-      duration: "1-2 semanas",
+      icon: MessageSquare,
+      title: "Briefing",
+      description: "Entendemos sua marca, objetivos e mensagem. Definimos o conceito criativo e direção artística.",
+      duration: "1-2 dias",
     },
     {
       icon: Palette,
-      title: "Design",
-      description: "Criamos wireframes e protótipos interativos. Validamos a experiência do usuário antes de desenvolver.",
-      duration: "1-2 semanas",
+      title: "Storyboard",
+      description: "Criamos storyboards e styleframes. Visualizamos a narrativa antes de animar.",
+      duration: "3-5 dias",
     },
     {
-      icon: Code,
-      title: "Desenvolvimento",
-      description: "Codificamos com qualidade usando metodologias ágeis. Entregas semanais para acompanhamento em tempo real.",
-      duration: "4-12 semanas",
+      icon: Film,
+      title: "Animação",
+      description: "Damos vida ao projeto com motion graphics 2D/3D. Iterações para garantir perfeição.",
+      duration: "1-3 semanas",
     },
     {
-      icon: TestTube,
-      title: "Testes",
-      description: "Testes automatizados e manuais garantem qualidade. QA rigoroso antes de cada entrega.",
-      duration: "Contínuo",
+      icon: Wand2,
+      title: "Pós-Produção",
+      description: "Color grading, sound design e composição final. Polimento de cada detalhe.",
+      duration: "3-5 dias",
     },
     {
       icon: Rocket,
-      title: "Deploy",
-      description: "Publicação em ambiente de produção com CI/CD. Monitoramento e otimização de performance.",
-      duration: "1 semana",
+      title: "Entrega",
+      description: "Exportação em múltiplos formatos. Arquivos otimizados para cada plataforma.",
+      duration: "1-2 dias",
     },
   ];
 
@@ -62,7 +62,7 @@ const Process = () => {
             Como <span className="text-gradient">trabalhamos</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
-            Um processo estruturado e transparente para garantir o sucesso do seu projeto.
+            Um processo criativo estruturado para garantir resultados visuais impactantes.
           </p>
         </div>
 
