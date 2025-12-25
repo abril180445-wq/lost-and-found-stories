@@ -1,8 +1,13 @@
 import { useState } from 'react';
-import { ExternalLink, X, Eye } from 'lucide-react';
+import { ExternalLink, X, Eye, Play } from 'lucide-react';
 import useScrollAnimation from '@/hooks/useScrollAnimation';
 
-interface Site {
+import project1 from '@/assets/project-1.jpg';
+import project2 from '@/assets/project-2.jpg';
+import project3 from '@/assets/project-3.jpg';
+import project4 from '@/assets/project-4.jpg';
+
+interface Project {
   id: number;
   name: string;
   category: string;
@@ -13,168 +18,141 @@ interface Site {
 
 const DeliveredSites = () => {
   const { elementRef, isVisible } = useScrollAnimation();
-  const [activeTab, setActiveTab] = useState<'institucional' | 'landing'>('institucional');
-  const [selectedSite, setSelectedSite] = useState<Site | null>(null);
+  const [activeTab, setActiveTab] = useState<'motion' | 'video'>('motion');
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
-  const institucionalSites: Site[] = [
+  const motionProjects: Project[] = [
     {
       id: 1,
-      name: "TechCorp Solutions",
-      category: "Tecnologia",
-      image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&h=400&fit=crop",
+      name: "Nebula Brand Identity",
+      category: "Brand Animation",
+      image: project1,
       url: "#",
-      description: "Site institucional completo para empresa de tecnologia com área de clientes e blog integrado."
+      description: "Animação completa de identidade visual para startup de tecnologia, incluindo logo animation e guidelines de movimento."
     },
     {
       id: 2,
-      name: "Clínica Vida",
-      category: "Saúde",
-      image: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=600&h=400&fit=crop",
+      name: "Flow Campaign",
+      category: "Motion Graphics",
+      image: project2,
       url: "#",
-      description: "Portal médico com agendamento online e prontuário eletrônico."
+      description: "Vídeo promocional com motion graphics fluido para campanha de marketing digital."
     },
     {
       id: 3,
-      name: "Construtora Horizonte",
-      category: "Construção",
-      image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&h=400&fit=crop",
+      name: "Architecture Dreams",
+      category: "3D Animation",
+      image: project3,
       url: "#",
-      description: "Site institucional com galeria de empreendimentos e tour virtual."
+      description: "Visualização arquitetônica cinematográfica com tour virtual em 3D."
     },
     {
       id: 4,
-      name: "Advocacia Martins",
-      category: "Jurídico",
-      image: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=600&h=400&fit=crop",
+      name: "Luxury Collection",
+      category: "Product Video",
+      image: project4,
       url: "#",
-      description: "Portal jurídico com área do cliente e consulta processual."
-    },
+      description: "Campanha de lançamento para marca premium com visualização de produto em 3D."
+    }
+  ];
+
+  const videoProjects: Project[] = [
     {
       id: 5,
-      name: "Escola Futuro",
-      category: "Educação",
-      image: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=600&h=400&fit=crop",
+      name: "Tech Summit 2024",
+      category: "Event Video",
+      image: project1,
       url: "#",
-      description: "Plataforma educacional com área do aluno e portal de matrículas."
+      description: "Vídeo de abertura e encerramento para evento de tecnologia com VFX e motion."
     },
     {
       id: 6,
-      name: "Hotel Paradise",
-      category: "Hotelaria",
-      image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&h=400&fit=crop",
+      name: "Fintech App Launch",
+      category: "Explainer Video",
+      image: project2,
       url: "#",
-      description: "Site de hotel com sistema de reservas e tour 360°."
-    }
-  ];
-
-  const landingPages: Site[] = [
+      description: "Vídeo explicativo animado para lançamento de aplicativo financeiro."
+    },
     {
       id: 7,
-      name: "Curso de Marketing Digital",
-      category: "Infoproduto",
-      image: "https://images.unsplash.com/photo-1432888622747-4eb9a8f2c1b9?w=600&h=400&fit=crop",
+      name: "Corporate Vision",
+      category: "Institutional",
+      image: project3,
       url: "#",
-      description: "Landing page de alta conversão para curso online com checkout integrado."
+      description: "Vídeo institucional com narrativa visual e motion graphics integrados."
     },
     {
       id: 8,
-      name: "App Fintech",
-      category: "Aplicativo",
-      image: "https://images.unsplash.com/photo-1563986768609-322da13575f3?w=600&h=400&fit=crop",
+      name: "Social Media Pack",
+      category: "Social Content",
+      image: project4,
       url: "#",
-      description: "Página de lançamento de aplicativo financeiro com waitlist."
-    },
-    {
-      id: 9,
-      name: "Evento Tech Summit",
-      category: "Evento",
-      image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=600&h=400&fit=crop",
-      url: "#",
-      description: "Landing page para evento de tecnologia com venda de ingressos."
-    },
-    {
-      id: 10,
-      name: "SaaS Analytics",
-      category: "Software",
-      image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&h=400&fit=crop",
-      url: "#",
-      description: "Página de produto SaaS com trial gratuito e planos de assinatura."
-    },
-    {
-      id: 11,
-      name: "E-book Investimentos",
-      category: "Infoproduto",
-      image: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=600&h=400&fit=crop",
-      url: "#",
-      description: "Landing page para captura de leads com download de e-book gratuito."
-    },
-    {
-      id: 12,
-      name: "Mentoria Empresarial",
-      category: "Serviço",
-      image: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&h=400&fit=crop",
-      url: "#",
-      description: "Página de vendas para programa de mentoria com depoimentos e cases."
+      description: "Pacote de conteúdo animado para redes sociais com templates reutilizáveis."
     }
   ];
 
-  const currentSites = activeTab === 'institucional' ? institucionalSites : landingPages;
+  const currentProjects = activeTab === 'motion' ? motionProjects : videoProjects;
 
   return (
     <section id="portfolio" className="py-24 bg-background relative overflow-hidden">
-      <div className="container mx-auto px-6">
+      <div className="absolute inset-0 dots-pattern opacity-20" />
+      <div className="container mx-auto px-6 relative z-10">
         <div
           ref={elementRef}
           className={`text-center mb-12 transition-all duration-1000 ${
             isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
           }`}
         >
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-primary mb-6">
+            <Play size={16} className="text-primary" />
+            <span className="text-primary font-medium text-sm tracking-wide">Portfólio</span>
+          </div>
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            Sites <span className="text-primary">Entregues</span>
+            Trabalhos <span className="text-gradient">Entregues</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-8">
-            Confira alguns dos projetos que desenvolvemos para nossos clientes
+            Confira alguns dos projetos de motion design que desenvolvemos
           </p>
 
           {/* Tabs */}
           <div className="flex justify-center gap-4 mb-12">
             <button
-              onClick={() => setActiveTab('institucional')}
+              onClick={() => setActiveTab('motion')}
               className={`px-6 py-3 rounded-full font-medium transition-all duration-300 ${
-                activeTab === 'institucional'
+                activeTab === 'motion'
                   ? 'bg-primary text-primary-foreground'
                   : 'bg-muted text-muted-foreground hover:bg-muted/80'
               }`}
             >
-              Sites Institucionais
+              Motion Graphics
             </button>
             <button
-              onClick={() => setActiveTab('landing')}
+              onClick={() => setActiveTab('video')}
               className={`px-6 py-3 rounded-full font-medium transition-all duration-300 ${
-                activeTab === 'landing'
+                activeTab === 'video'
                   ? 'bg-primary text-primary-foreground'
                   : 'bg-muted text-muted-foreground hover:bg-muted/80'
               }`}
             >
-              Landing Pages
+              Vídeos
             </button>
           </div>
         </div>
 
         {/* Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {currentSites.map((site, index) => (
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {currentProjects.map((project, index) => (
             <div
-              key={site.id}
-              className={`group relative overflow-hidden rounded-xl bg-card border border-border/50 hover:border-primary/50 transition-all duration-500 ${
+              key={project.id}
+              className={`group relative overflow-hidden rounded-xl glass border-gradient hover:border-primary/50 transition-all duration-500 card-hover ${
                 isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
               }`}
               style={{ transitionDelay: `${index * 100}ms` }}
             >
               <div className="relative aspect-video overflow-hidden">
                 <img
-                  src={site.image}
-                  alt={site.name}
+                  src={project.image}
+                  alt={project.name}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -182,25 +160,17 @@ const DeliveredSites = () => {
                 {/* Overlay buttons */}
                 <div className="absolute inset-0 flex items-center justify-center gap-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                   <button
-                    onClick={() => setSelectedSite(site)}
+                    onClick={() => setSelectedProject(project)}
                     className="p-3 rounded-full bg-primary text-primary-foreground hover:scale-110 transition-transform"
                   >
                     <Eye className="w-5 h-5" />
                   </button>
-                  <a
-                    href={site.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-3 rounded-full bg-card text-foreground border border-border hover:border-primary hover:scale-110 transition-all"
-                  >
-                    <ExternalLink className="w-5 h-5" />
-                  </a>
                 </div>
               </div>
               
               <div className="p-4">
-                <span className="text-xs text-primary font-medium">{site.category}</span>
-                <h3 className="font-bold text-foreground mt-1">{site.name}</h3>
+                <span className="text-xs text-primary font-medium">{project.category}</span>
+                <h3 className="font-bold text-foreground mt-1">{project.name}</h3>
               </div>
             </div>
           ))}
@@ -208,40 +178,37 @@ const DeliveredSites = () => {
       </div>
 
       {/* Modal */}
-      {selectedSite && (
+      {selectedProject && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm"
-          onClick={() => setSelectedSite(null)}
+          onClick={() => setSelectedProject(null)}
         >
           <div
             className="relative max-w-4xl w-full bg-card rounded-2xl overflow-hidden border border-border animate-scale-in"
             onClick={(e) => e.stopPropagation()}
           >
             <button
-              onClick={() => setSelectedSite(null)}
+              onClick={() => setSelectedProject(null)}
               className="absolute top-4 right-4 z-10 p-2 rounded-full bg-background/80 hover:bg-background transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
             
             <img
-              src={selectedSite.image}
-              alt={selectedSite.name}
+              src={selectedProject.image}
+              alt={selectedProject.name}
               className="w-full aspect-video object-cover"
             />
             
             <div className="p-6">
-              <span className="text-sm text-primary font-medium">{selectedSite.category}</span>
-              <h3 className="text-2xl font-bold text-foreground mt-1 mb-3">{selectedSite.name}</h3>
-              <p className="text-muted-foreground mb-4">{selectedSite.description}</p>
-              <a
-                href={selectedSite.url}
-                target="_blank"
-                rel="noopener noreferrer"
+              <span className="text-sm text-primary font-medium">{selectedProject.category}</span>
+              <h3 className="text-2xl font-bold text-foreground mt-1 mb-3">{selectedProject.name}</h3>
+              <p className="text-muted-foreground mb-4">{selectedProject.description}</p>
+              <button
                 className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-full hover:opacity-90 transition-opacity"
               >
-                Visitar Site <ExternalLink className="w-4 h-4" />
-              </a>
+                Ver Projeto <Play className="w-4 h-4" />
+              </button>
             </div>
           </div>
         </div>

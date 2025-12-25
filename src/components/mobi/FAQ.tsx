@@ -6,10 +6,11 @@ const FAQ = () => {
   const headerAnimation = useScrollAnimation();
 
   const faqs = [
-    { question: "Quanto tempo leva para desenvolver um sistema?", answer: "O prazo varia conforme a complexidade. Um MVP pode levar de 4 a 8 semanas. Sistemas mais complexos podem levar de 3 a 6 meses." },
-    { question: "Qual o custo médio de um projeto?", answer: "O investimento depende do escopo, funcionalidades e tecnologias envolvidas. Trabalhamos com orçamentos personalizados." },
-    { question: "Vocês oferecem suporte após a entrega?", answer: "Sim! Todos os projetos incluem garantia de 90 dias para correção de bugs, além de planos de manutenção mensal." },
-    { question: "Quais tecnologias vocês utilizam?", answer: "React, Next.js, React Native, Node.js, TypeScript, PostgreSQL, MongoDB, AWS, entre outras." },
+    { question: "Quanto tempo leva para criar uma animação?", answer: "O prazo varia conforme a complexidade. Um vídeo de 30 segundos pode levar de 1 a 2 semanas. Projetos maiores podem levar de 3 a 8 semanas." },
+    { question: "Qual o investimento para um projeto de motion?", answer: "O valor depende da duração, complexidade e estilo da animação. Trabalhamos com orçamentos personalizados para cada projeto." },
+    { question: "Vocês fazem revisões no projeto?", answer: "Sim! Cada projeto inclui rodadas de revisão em cada etapa (storyboard, animatic e animação final) para garantir sua satisfação." },
+    { question: "Quais formatos de arquivo vocês entregam?", answer: "Entregamos em diversos formatos: MP4, MOV, GIF, WEBM, entre outros. Otimizamos para cada plataforma (web, TV, redes sociais)." },
+    { question: "Vocês fazem animações 3D?", answer: "Sim! Trabalhamos com Cinema 4D, Blender e outros softwares 3D para criar visualizações de produto, ambientes e personagens." },
   ];
 
   return (

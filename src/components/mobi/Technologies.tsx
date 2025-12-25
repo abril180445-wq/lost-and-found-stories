@@ -1,18 +1,18 @@
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
-import { Cpu } from "lucide-react";
+import { Wand2 } from "lucide-react";
 
 const Technologies = () => {
   const { ref, isVisible } = useScrollAnimation();
 
   const technologies = [
-    { name: "React", icon: "⚛️", category: "Frontend" },
-    { name: "TypeScript", icon: "📘", category: "Language" },
-    { name: "Node.js", icon: "🟢", category: "Backend" },
-    { name: "PostgreSQL", icon: "🐘", category: "Database" },
-    { name: "AWS", icon: "☁️", category: "Cloud" },
-    { name: "Docker", icon: "🐳", category: "DevOps" },
-    { name: "Next.js", icon: "▲", category: "Framework" },
-    { name: "Tailwind", icon: "🎨", category: "Styling" },
+    { name: "After Effects", icon: "🎬", category: "Motion" },
+    { name: "Cinema 4D", icon: "🎲", category: "3D" },
+    { name: "Blender", icon: "🔶", category: "3D" },
+    { name: "Premiere Pro", icon: "🎞️", category: "Edição" },
+    { name: "DaVinci Resolve", icon: "🎨", category: "Color" },
+    { name: "Illustrator", icon: "✏️", category: "Design" },
+    { name: "Photoshop", icon: "🖼️", category: "Design" },
+    { name: "Figma", icon: "🎯", category: "UI/UX" },
   ];
 
   return (
@@ -27,17 +27,17 @@ const Technologies = () => {
           }`}
         >
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-primary mb-6">
-            <Cpu size={16} className="text-primary" />
+            <Wand2 size={16} className="text-primary" />
             <span className="text-primary font-medium text-sm tracking-wide">
-              Tecnologias
+              Ferramentas
             </span>
           </div>
           <h2 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6">
-            Stack <span className="text-gradient">Tecnológico</span>
+            Nosso <span className="text-gradient">Arsenal Criativo</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
-            Utilizamos as tecnologias mais modernas do mercado para construir
-            soluções robustas, escaláveis e de alta performance.
+            Utilizamos as ferramentas mais avançadas do mercado para criar
+            animações e vídeos de qualidade cinematográfica.
           </p>
         </div>
 

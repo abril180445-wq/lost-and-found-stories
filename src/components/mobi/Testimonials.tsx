@@ -24,7 +24,7 @@ const Testimonials = () => {
       company: "TechStart Brasil",
       role: "CEO",
       image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&h=150&fit=crop&crop=face",
-      text: "A Rorschach Motion transformou completamente nossa presença digital. O site superou todas as expectativas e triplicou nossas conversões em apenas 3 meses.",
+      text: "A Rorschach Motion elevou nossa marca a outro patamar. O vídeo institucional superou todas as expectativas e triplicou nosso engajamento.",
       rating: 5
     },
     {
@@ -33,7 +33,7 @@ const Testimonials = () => {
       company: "Boutique Elegance",
       role: "Fundadora",
       image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&h=150&fit=crop&crop=face",
-      text: "Profissionalismo e criatividade em cada detalhe. O e-commerce que desenvolveram é simplesmente perfeito. Recomendo de olhos fechados!",
+      text: "Criatividade e profissionalismo em cada frame. A animação do nosso logo ficou simplesmente espetacular. Recomendo demais!",
       rating: 5
     },
     {
@@ -42,7 +42,7 @@ const Testimonials = () => {
       company: "Construtora FO",
       role: "Diretor Comercial",
       image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
-      text: "Equipe extremamente competente. Entenderam nossa visão e entregaram um site que realmente representa nossa marca no mercado.",
+      text: "Equipe extremamente talentosa. Os vídeos 3D dos nossos empreendimentos impressionam todos os clientes nas apresentações.",
       rating: 5
     },
     {
@@ -51,7 +51,7 @@ const Testimonials = () => {
       company: "Studio JS Arquitetura",
       role: "Arquiteta",
       image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&h=150&fit=crop&crop=face",
-      text: "Design impecável e performance excepcional. Meu portfólio online nunca ficou tão bonito. Clientes chegam impressionados!",
+      text: "Motion design impecável! Os vídeos do meu portfólio online ficaram cinematográficos. Clientes chegam impressionados!",
       rating: 5
     }
   ];
