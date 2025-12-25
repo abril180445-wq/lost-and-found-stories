@@ -1,4 +1,4 @@
-import { Globe, Smartphone, Server, Users, ArrowRight, Sparkles } from "lucide-react";
+import { Film, Box, Palette, Wand2, ArrowRight, Sparkles } from "lucide-react";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 const Services = () => {
@@ -7,31 +7,31 @@ const Services = () => {
 
   const services = [
     {
-      icon: Globe,
-      title: "Aplicações Web",
-      description: "Sistemas web modernos, responsivos e escaláveis. SPAs, dashboards, e-commerces e plataformas completas.",
-      features: ["React / Next.js", "APIs RESTful", "UI/UX Premium", "Alta Performance"],
+      icon: Film,
+      title: "Motion Graphics",
+      description: "Animações 2D dinâmicas que dão vida às suas ideias. Vídeos promocionais, explicativos e conteúdo para redes sociais.",
+      features: ["After Effects", "Animação 2D", "Vídeos Promocionais", "Social Media"],
       color: "from-cyan-500 to-blue-500",
     },
     {
-      icon: Smartphone,
-      title: "Apps Mobile",
-      description: "Aplicativos nativos e híbridos para iOS e Android com experiências fluidas e intuitivas.",
-      features: ["React Native", "Flutter", "iOS & Android", "Push Notifications"],
+      icon: Box,
+      title: "Animação 3D",
+      description: "Modelagem e animação 3D de alta qualidade para produtos, arquitetura e experiências imersivas.",
+      features: ["Cinema 4D", "Blender", "Visualização de Produto", "VFX"],
       color: "from-violet-500 to-purple-500",
     },
     {
-      icon: Server,
-      title: "Backend & APIs",
-      description: "Arquiteturas robustas, microsserviços, integrações e APIs de alta disponibilidade.",
-      features: ["Node.js / Python", "PostgreSQL / MongoDB", "AWS / GCP", "CI/CD"],
+      icon: Palette,
+      title: "Brand Animation",
+      description: "Animação de logos, intros e identidade visual em movimento que destaca sua marca.",
+      features: ["Logo Animation", "Intro & Outro", "Brand Guidelines", "Style Frames"],
       color: "from-emerald-500 to-teal-500",
     },
     {
-      icon: Users,
-      title: "Consultoria Tech",
-      description: "Análise, planejamento e mentoria para transformação digital e otimização de processos.",
-      features: ["Arquitetura de Sistemas", "Code Review", "Mentoria", "Planejamento"],
+      icon: Wand2,
+      title: "Vídeo & Pós-Produção",
+      description: "Edição profissional, color grading e composição para resultados cinematográficos.",
+      features: ["Edição de Vídeo", "Color Grading", "Composição", "Sound Design"],
       color: "from-orange-500 to-amber-500",
     },
   ];
@@ -60,8 +60,8 @@ const Services = () => {
             Soluções <span className="text-gradient">sob medida</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
-            Oferecemos um portfólio completo de serviços de desenvolvimento
-            para atender todas as necessidades do seu negócio.
+            Oferecemos um portfólio completo de serviços de motion design
+            para dar vida às suas ideias e elevar sua marca.
           </p>
         </div>
 
