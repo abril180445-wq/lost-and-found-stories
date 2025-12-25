@@ -5,14 +5,14 @@ const Clients = () => {
   const headerAnimation = useScrollAnimation();
 
   const clients = [
-    { name: "TechCorp", initial: "TC" },
-    { name: "InnovateLab", initial: "IL" },
-    { name: "DataFlow", initial: "DF" },
-    { name: "CloudSync", initial: "CS" },
-    { name: "FinanceHub", initial: "FH" },
-    { name: "RetailMax", initial: "RM" },
-    { name: "HealthTech", initial: "HT" },
-    { name: "EduPlatform", initial: "EP" },
+    { name: "Netflix", initial: "N" },
+    { name: "Spotify", initial: "S" },
+    { name: "Nike", initial: "NK" },
+    { name: "Adobe", initial: "A" },
+    { name: "Apple", initial: "AP" },
+    { name: "Google", initial: "G" },
+    { name: "Meta", initial: "M" },
+    { name: "Amazon", initial: "AZ" },
   ];
 
   return (
