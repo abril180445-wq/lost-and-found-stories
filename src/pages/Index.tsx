@@ -21,6 +21,7 @@ const ScrollProgress = lazy(() => import("@/components/mobi/ScrollProgress"));
 const Team = lazy(() => import("@/components/mobi/Team"));
 const Testimonials = lazy(() => import("@/components/mobi/Testimonials"));
 const DeliveredSites = lazy(() => import("@/components/mobi/DeliveredSites"));
+const Blog = lazy(() => import("@/components/mobi/Blog"));
 
 const SectionLoader = memo(() => (
   <div className="w-full py-20 flex justify-center">
@@ -59,6 +60,7 @@ const Index = () => {
         <Suspense fallback={<SectionLoader />}><Team /></Suspense>
         <Suspense fallback={<SectionLoader />}><Testimonials /></Suspense>
         <Suspense fallback={<SectionLoader />}><FAQ /></Suspense>
+        <Suspense fallback={<SectionLoader />}><Blog /></Suspense>
         <Suspense fallback={<SectionLoader />}><Contact /></Suspense>
       </main>
 
