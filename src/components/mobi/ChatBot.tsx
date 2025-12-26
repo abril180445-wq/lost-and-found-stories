@@ -14,7 +14,7 @@ const ChatBot = () => {
     {
       id: '1',
       role: 'assistant',
-      content: 'Olá! 👋 Sou o assistente virtual da Rorschach Motion. Como posso ajudar você hoje?',
+      content: 'Olá! 👋 Sou o assistente virtual da Rorschach Motion. Precisa de motion graphics, animação 3D ou vídeo? Como posso ajudar?',
       timestamp: new Date()
     }
   ]);
@@ -47,11 +47,11 @@ const ChatBot = () => {
     // Simulate AI response (replace with actual API call if needed)
     setTimeout(() => {
       const responses = [
-        'Ótima pergunta! A Rorschach Motion é especializada em criar experiências digitais únicas. Posso te ajudar com informações sobre nossos serviços.',
-        'Trabalhamos com desenvolvimento web, design UI/UX, e-commerce e muito mais. Qual área te interessa mais?',
-        'Nosso time está pronto para transformar suas ideias em realidade digital. Quer saber mais sobre algum serviço específico?',
-        'Ficamos felizes com seu interesse! Para um orçamento personalizado, você pode entrar em contato pelo WhatsApp ou pelo formulário de contato.',
-        'Temos diversos cases de sucesso que demonstram nossa qualidade. Confira a seção de portfólio para ver nossos trabalhos!'
+        'Ótima pergunta! A Rorschach Motion é especializada em motion design, animação 3D e vídeos cinematográficos. Posso te ajudar com informações sobre nossos serviços.',
+        'Trabalhamos com motion graphics, animação de marca, visualização 3D e pós-produção de vídeo. Qual área te interessa mais?',
+        'Nosso time de artistas está pronto para dar vida às suas ideias através do movimento. Quer saber mais sobre algum serviço específico?',
+        'Ficamos felizes com seu interesse! Para um orçamento personalizado de motion design, você pode entrar em contato pelo WhatsApp ou pelo formulário.',
+        'Temos diversos cases de sucesso em animação e vídeo. Confira a seção de portfólio para ver nossas criações em movimento!'
       ];
 
       const assistantMessage: Message = {
