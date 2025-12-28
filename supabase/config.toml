@@ -22,3 +22,6 @@ site_url = "http://127.0.0.1:3000"
 
 [functions.generate-blog-content]
 verify_jwt = false
+
+[functions.generate-blog-image]
+verify_jwt = false
