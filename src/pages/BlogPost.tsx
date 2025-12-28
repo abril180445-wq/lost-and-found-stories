@@ -91,8 +91,9 @@ const BlogPost = () => {
   const shareText = encodeURIComponent(post?.title || 'Confira este artigo!');
   const shareUrl = encodeURIComponent(currentUrl);
   
-  // URL com preview para redes sociais
-  const ogPreviewUrl = `https://twvmmsrjkfmropwwdjfg.supabase.co/functions/v1/og-preview?slug=${slug}`;
+  // Link com prévia (para Facebook/LinkedIn/etc. que não leem meta tags via JS)
+  const functionsBaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const ogPreviewUrl = `${functionsBaseUrl}/functions/v1/og-preview?slug=${encodeURIComponent(slug || '')}&target=${encodeURIComponent(currentUrl)}`;
   const ogShareUrl = encodeURIComponent(ogPreviewUrl);
 
   const shareOptions = [
@@ -149,9 +150,10 @@ const BlogPost = () => {
 
   const copyLink = async () => {
     try {
-      await navigator.clipboard.writeText(currentUrl);
+      // Copia o link com prévia para redes sociais
+      await navigator.clipboard.writeText(ogPreviewUrl);
       setCopied(true);
-      toast.success('Link copiado para a área de transferência!');
+      toast.success('Link de compartilhamento copiado!');
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       toast.error('Erro ao copiar link');

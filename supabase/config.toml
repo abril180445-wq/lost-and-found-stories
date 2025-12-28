@@ -25,3 +25,6 @@ verify_jwt = false
 
 [functions.generate-blog-image]
 verify_jwt = false
+
+[functions.og-preview]
+verify_jwt = false
