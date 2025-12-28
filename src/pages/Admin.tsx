@@ -18,7 +18,9 @@ import {
   ArrowLeft,
   FileText,
   Eye,
-  EyeOff
+  EyeOff,
+  Image,
+  Loader2
 } from 'lucide-react';
 
 interface BlogPost {
@@ -43,6 +45,7 @@ const Admin = () => {
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [aiTopic, setAiTopic] = useState('');
 
   const [formData, setFormData] = useState({
@@ -146,6 +149,38 @@ const Admin = () => {
       toast.error(error.message || 'Erro ao gerar conteúdo');
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const generateImage = async () => {
+    if (!aiTopic.trim() && !formData.title.trim()) {
+      toast.error('Digite um tópico ou título para gerar a imagem');
+      return;
+    }
+
+    const topic = aiTopic.trim() || formData.title;
+    const slug = formData.slug || generateSlug(topic);
+
+    setIsGeneratingImage(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-blog-image', {
+        body: { topic, slug }
+      });
+
+      if (error) throw error;
+
+      if (data.imageUrl) {
+        setFormData(prev => ({
+          ...prev,
+          image_url: data.imageUrl
+        }));
+        toast.success('Imagem gerada com sucesso!');
+      }
+    } catch (error: any) {
+      console.error('Image generation error:', error);
+      toast.error(error.message || 'Erro ao gerar imagem');
+    } finally {
+      setIsGeneratingImage(false);
     }
   };
 
@@ -376,7 +411,31 @@ const Admin = () => {
                   <Sparkles className="w-4 h-4 mr-2" />
                   {isGenerating ? 'Gerando...' : 'Gerar Artigo Completo'}
                 </Button>
+                <Button 
+                  variant="outline"
+                  onClick={generateImage}
+                  disabled={isGeneratingImage}
+                >
+                  {isGeneratingImage ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Image className="w-4 h-4 mr-2" />
+                  )}
+                  {isGeneratingImage ? 'Gerando Imagem...' : 'Gerar Imagem'}
+                </Button>
               </div>
+              
+              {/* Image Preview */}
+              {formData.image_url && (
+                <div className="mt-4">
+                  <p className="text-sm text-muted-foreground mb-2">Imagem gerada:</p>
+                  <img 
+                    src={formData.image_url} 
+                    alt="Preview" 
+                    className="max-w-md rounded-lg border border-border"
+                  />
+                </div>
+              )}
             </div>
 
             {/* Post Form */}
