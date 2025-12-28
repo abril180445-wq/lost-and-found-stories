@@ -56,7 +56,7 @@ const Admin = () => {
     image_url: '',
     category: 'Motion Design',
     author: 'Rorschach Motion',
-    published: false
+    published: true
   });
 
   useEffect(() => {
@@ -262,7 +262,7 @@ const Admin = () => {
       image_url: '',
       category: 'Motion Design',
       author: 'Rorschach Motion',
-      published: false
+      published: true
     });
     setEditingPost(null);
     setIsCreating(false);
