@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { ArrowLeft, Calendar, User, Tag, Share2, Facebook, Instagram, Copy, Check } from 'lucide-react';
+import { ArrowLeft, Calendar, User, Tag, Share2, Facebook, Copy, Check, MessageCircle, Linkedin, Twitter, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
@@ -87,11 +87,48 @@ const BlogPost = () => {
     };
   }, [post]);
 
-  const sharePost = async () => {
+  const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
+  const shareText = encodeURIComponent(post?.title || 'Confira este artigo!');
+  const shareUrl = encodeURIComponent(currentUrl);
+
+  const shareOptions = [
+    {
+      name: 'WhatsApp',
+      icon: MessageCircle,
+      color: 'bg-green-500 hover:bg-green-600',
+      action: () => window.open(`https://wa.me/?text=${shareText}%20${shareUrl}`, '_blank'),
+    },
+    {
+      name: 'Facebook',
+      icon: Facebook,
+      color: 'bg-blue-600 hover:bg-blue-700',
+      action: () => window.open(`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`, '_blank'),
+    },
+    {
+      name: 'LinkedIn',
+      icon: Linkedin,
+      color: 'bg-blue-700 hover:bg-blue-800',
+      action: () => window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`, '_blank'),
+    },
+    {
+      name: 'Twitter',
+      icon: Twitter,
+      color: 'bg-sky-500 hover:bg-sky-600',
+      action: () => window.open(`https://twitter.com/intent/tweet?text=${shareText}&url=${shareUrl}`, '_blank'),
+    },
+    {
+      name: 'Email',
+      icon: Mail,
+      color: 'bg-gray-600 hover:bg-gray-700',
+      action: () => window.open(`mailto:?subject=${shareText}&body=${encodeURIComponent(`${post?.excerpt || ''}\n\nLeia mais: ${currentUrl}`)}`, '_blank'),
+    },
+  ];
+
+  const nativeShare = async () => {
     const shareData = {
       title: post?.title || 'Artigo do Blog',
       text: post?.excerpt || 'Confira este artigo!',
-      url: window.location.href,
+      url: currentUrl,
     };
 
     try {
@@ -99,24 +136,18 @@ const BlogPost = () => {
         await navigator.share(shareData);
         toast.success('Compartilhado com sucesso!');
       } else {
-        // Fallback: copy formatted text
-        const text = `${post?.title}\n\n${post?.excerpt}\n\nLeia mais: ${window.location.href}`;
-        await navigator.clipboard.writeText(text);
-        setCopied(true);
-        toast.success('Texto copiado! Cole nas redes sociais');
-        setTimeout(() => setCopied(false), 2000);
+        await copyLink();
       }
     } catch (err) {
-      // User cancelled or error
-      console.log('Share cancelled or failed');
+      console.log('Share cancelled');
     }
   };
 
   const copyLink = async () => {
     try {
-      await navigator.clipboard.writeText(window.location.href);
+      await navigator.clipboard.writeText(currentUrl);
       setCopied(true);
-      toast.success('Link copiado!');
+      toast.success('Link copiado para a área de transferência!');
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       toast.error('Erro ao copiar link');
@@ -203,38 +234,61 @@ const BlogPost = () => {
           </div>
 
           {/* Share Buttons */}
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="text-sm text-muted-foreground flex items-center gap-1">
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Share2 className="w-4 h-4" />
-              Compartilhar:
-            </span>
-            <Button
-              variant="default"
-              size="sm"
-              onClick={sharePost}
-              className="gap-2"
-            >
-              <Share2 className="w-4 h-4" />
-              Compartilhar
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={copyLink}
-              className="gap-2"
-            >
-              {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
-              {copied ? 'Copiado!' : 'Copiar Link'}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={openFacebookPage}
-              className="gap-2 text-muted-foreground hover:text-primary"
-            >
-              <Facebook className="w-4 h-4" />
-              Nossa Página
-            </Button>
+              <span>Compartilhe este artigo:</span>
+            </div>
+            
+            {/* Social Share Buttons */}
+            <div className="flex flex-wrap gap-2">
+              {shareOptions.map((option) => (
+                <Button
+                  key={option.name}
+                  size="sm"
+                  onClick={option.action}
+                  className={`gap-2 text-white ${option.color} border-0`}
+                >
+                  <option.icon className="w-4 h-4" />
+                  {option.name}
+                </Button>
+              ))}
+            </div>
+
+            {/* Copy and Native Share */}
+            <div className="flex flex-wrap gap-2 pt-2 border-t border-border/50">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={copyLink}
+                className="gap-2"
+              >
+                {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                {copied ? 'Link Copiado!' : 'Copiar Link'}
+              </Button>
+              
+              {typeof navigator !== 'undefined' && 'share' in navigator && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={nativeShare}
+                  className="gap-2"
+                >
+                  <Share2 className="w-4 h-4" />
+                  Mais opções
+                </Button>
+              )}
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={openFacebookPage}
+                className="gap-2 text-blue-500 hover:text-blue-600 hover:bg-blue-500/10"
+              >
+                <Facebook className="w-4 h-4" />
+                Nossa Página
+              </Button>
+            </div>
           </div>
         </header>
 
