@@ -87,25 +87,44 @@ const BlogPost = () => {
     };
   }, [post]);
 
-  const shareOnFacebook = () => {
-    const url = encodeURIComponent(window.location.href);
-    const text = encodeURIComponent(post?.title || '');
-    window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}&quote=${text}`, '_blank', 'width=600,height=400');
-  };
+  const sharePost = async () => {
+    const shareData = {
+      title: post?.title || 'Artigo do Blog',
+      text: post?.excerpt || 'Confira este artigo!',
+      url: window.location.href,
+    };
 
-  const openFacebookPage = () => {
-    window.open('https://www.facebook.com/profile.php?id=61568748082795', '_blank');
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+        toast.success('Compartilhado com sucesso!');
+      } else {
+        // Fallback: copy formatted text
+        const text = `${post?.title}\n\n${post?.excerpt}\n\nLeia mais: ${window.location.href}`;
+        await navigator.clipboard.writeText(text);
+        setCopied(true);
+        toast.success('Texto copiado! Cole nas redes sociais');
+        setTimeout(() => setCopied(false), 2000);
+      }
+    } catch (err) {
+      // User cancelled or error
+      console.log('Share cancelled or failed');
+    }
   };
 
   const copyLink = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
       setCopied(true);
-      toast.success('Link copiado! Cole no Instagram');
+      toast.success('Link copiado!');
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       toast.error('Erro ao copiar link');
     }
+  };
+
+  const openFacebookPage = () => {
+    window.open('https://www.facebook.com/profile.php?id=61568748082795', '_blank');
   };
 
   const formatDate = (dateString: string) => {
@@ -190,12 +209,12 @@ const BlogPost = () => {
               Compartilhar:
             </span>
             <Button
-              variant="outline"
+              variant="default"
               size="sm"
-              onClick={shareOnFacebook}
+              onClick={sharePost}
               className="gap-2"
             >
-              <Facebook className="w-4 h-4" />
+              <Share2 className="w-4 h-4" />
               Compartilhar
             </Button>
             <Button
