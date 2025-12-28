@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { ArrowLeft, Calendar, User, Tag } from 'lucide-react';
+import { ArrowLeft, Calendar, User, Tag, Share2, Facebook, Instagram, Copy, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 interface Post {
   id: string;
@@ -20,6 +21,7 @@ const BlogPost = () => {
   const { slug } = useParams<{ slug: string }>();
   const [post, setPost] = useState<Post | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -44,6 +46,62 @@ const BlogPost = () => {
 
     fetchPost();
   }, [slug]);
+
+  // Update meta tags for social sharing
+  useEffect(() => {
+    if (post) {
+      // Update document title
+      document.title = `${post.title} | Rorschach Motion`;
+      
+      // Update or create meta tags
+      const updateMetaTag = (property: string, content: string) => {
+        let meta = document.querySelector(`meta[property="${property}"]`) as HTMLMetaElement;
+        if (!meta) {
+          meta = document.createElement('meta');
+          meta.setAttribute('property', property);
+          document.head.appendChild(meta);
+        }
+        meta.content = content;
+      };
+
+      const currentUrl = window.location.href;
+      const imageUrl = post.image_url || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=1200&h=630&fit=crop';
+
+      // Open Graph tags for Facebook/Instagram
+      updateMetaTag('og:title', post.title);
+      updateMetaTag('og:description', post.excerpt || 'Leia mais no blog da Rorschach Motion');
+      updateMetaTag('og:image', imageUrl);
+      updateMetaTag('og:url', currentUrl);
+      updateMetaTag('og:type', 'article');
+      updateMetaTag('og:site_name', 'Rorschach Motion');
+      
+      // Twitter Card tags
+      updateMetaTag('twitter:card', 'summary_large_image');
+      updateMetaTag('twitter:title', post.title);
+      updateMetaTag('twitter:description', post.excerpt || 'Leia mais no blog da Rorschach Motion');
+      updateMetaTag('twitter:image', imageUrl);
+    }
+
+    return () => {
+      document.title = 'Rorschach Motion';
+    };
+  }, [post]);
+
+  const shareOnFacebook = () => {
+    const url = encodeURIComponent(window.location.href);
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank', 'width=600,height=400');
+  };
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      toast.success('Link copiado! Cole no Instagram');
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      toast.error('Erro ao copiar link');
+    }
+  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR', {
@@ -109,7 +167,7 @@ const BlogPost = () => {
             {post.title}
           </h1>
 
-          <div className="flex flex-wrap items-center gap-4 text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-4 text-muted-foreground mb-6">
             <span className="flex items-center gap-2">
               <User className="w-4 h-4" />
               {post.author || 'Rorschach Motion'}
@@ -118,6 +176,32 @@ const BlogPost = () => {
               <Calendar className="w-4 h-4" />
               {formatDate(post.created_at)}
             </span>
+          </div>
+
+          {/* Share Buttons */}
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-muted-foreground flex items-center gap-1">
+              <Share2 className="w-4 h-4" />
+              Compartilhar:
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={shareOnFacebook}
+              className="gap-2"
+            >
+              <Facebook className="w-4 h-4" />
+              Facebook
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={copyLink}
+              className="gap-2"
+            >
+              {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+              {copied ? 'Copiado!' : 'Instagram'}
+            </Button>
           </div>
         </header>
 
