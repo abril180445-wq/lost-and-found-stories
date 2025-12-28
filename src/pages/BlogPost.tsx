@@ -90,6 +90,10 @@ const BlogPost = () => {
   const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
   const shareText = encodeURIComponent(post?.title || 'Confira este artigo!');
   const shareUrl = encodeURIComponent(currentUrl);
+  
+  // URL com preview para redes sociais
+  const ogPreviewUrl = `https://twvmmsrjkfmropwwdjfg.supabase.co/functions/v1/og-preview?slug=${slug}`;
+  const ogShareUrl = encodeURIComponent(ogPreviewUrl);
 
   const shareOptions = [
     {
@@ -102,13 +106,13 @@ const BlogPost = () => {
       name: 'Facebook',
       icon: Facebook,
       color: 'bg-blue-600 hover:bg-blue-700',
-      action: () => window.open(`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`, '_blank'),
+      action: () => window.open(`https://www.facebook.com/sharer/sharer.php?u=${ogShareUrl}`, '_blank'),
     },
     {
       name: 'LinkedIn',
       icon: Linkedin,
       color: 'bg-blue-700 hover:bg-blue-800',
-      action: () => window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`, '_blank'),
+      action: () => window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${ogShareUrl}`, '_blank'),
     },
     {
       name: 'Twitter',
