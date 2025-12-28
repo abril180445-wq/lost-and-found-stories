@@ -89,7 +89,12 @@ const BlogPost = () => {
 
   const shareOnFacebook = () => {
     const url = encodeURIComponent(window.location.href);
-    window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank', 'width=600,height=400');
+    const text = encodeURIComponent(post?.title || '');
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}&quote=${text}`, '_blank', 'width=600,height=400');
+  };
+
+  const openFacebookPage = () => {
+    window.open('https://www.facebook.com/profile.php?id=61568748082795', '_blank');
   };
 
   const copyLink = async () => {
@@ -179,7 +184,7 @@ const BlogPost = () => {
           </div>
 
           {/* Share Buttons */}
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <span className="text-sm text-muted-foreground flex items-center gap-1">
               <Share2 className="w-4 h-4" />
               Compartilhar:
@@ -191,7 +196,7 @@ const BlogPost = () => {
               className="gap-2"
             >
               <Facebook className="w-4 h-4" />
-              Facebook
+              Compartilhar
             </Button>
             <Button
               variant="outline"
@@ -200,7 +205,16 @@ const BlogPost = () => {
               className="gap-2"
             >
               {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
-              {copied ? 'Copiado!' : 'Instagram'}
+              {copied ? 'Copiado!' : 'Copiar Link'}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={openFacebookPage}
+              className="gap-2 text-muted-foreground hover:text-primary"
+            >
+              <Facebook className="w-4 h-4" />
+              Nossa Página
             </Button>
           </div>
         </header>
