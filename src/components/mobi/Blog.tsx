@@ -1,42 +1,96 @@
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { Newspaper, ArrowRight, Calendar, Clock, User } from "lucide-react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+
+interface BlogPost {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  image_url: string | null;
+  category: string | null;
+  author: string | null;
+  created_at: string;
+}
 
 const Blog = () => {
   const headerAnimation = useScrollAnimation();
   const gridAnimation = useScrollAnimation();
+  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const posts = [
+  // Static fallback posts
+  const staticPosts = [
     {
-      id: 1,
+      id: "static-1",
       title: "Tendências de Motion Design para 2025",
+      slug: "tendencias-motion-design-2025",
       excerpt: "Descubra as principais tendências que estão moldando o futuro do motion design e como aplicá-las em seus projetos.",
       category: "Tendências",
-      author: "Lucas Rorschach",
-      date: "20 Dez 2024",
-      readTime: "5 min",
-      image: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&h=500&fit=crop"
+      author: "Rorschach Motion",
+      created_at: "2024-12-20",
+      image_url: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&h=500&fit=crop"
     },
     {
-      id: 2,
+      id: "static-2",
       title: "Cinema 4D vs Blender: Qual escolher?",
+      slug: "cinema-4d-vs-blender",
       excerpt: "Uma análise comparativa entre as duas ferramentas 3D mais populares do mercado para motion designers.",
       category: "Ferramentas",
-      author: "Rafael Santos",
-      date: "15 Dez 2024",
-      readTime: "8 min",
-      image: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800&h=500&fit=crop"
+      author: "Rorschach Motion",
+      created_at: "2024-12-15",
+      image_url: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800&h=500&fit=crop"
     },
     {
-      id: 3,
+      id: "static-3",
       title: "Como criar animações de marca impactantes",
+      slug: "animacoes-marca-impactantes",
       excerpt: "Guia completo para desenvolver animações de logo e identidade visual que fortalecem a presença da marca.",
       category: "Tutorial",
-      author: "Marina Costa",
-      date: "10 Dez 2024",
-      readTime: "6 min",
-      image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=500&fit=crop"
+      author: "Rorschach Motion",
+      created_at: "2024-12-10",
+      image_url: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=500&fit=crop"
     }
   ];
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('blog_posts')
+          .select('id, title, slug, excerpt, image_url, category, author, created_at')
+          .eq('published', true)
+          .order('created_at', { ascending: false })
+          .limit(3);
+
+        if (error) throw error;
+        
+        if (data && data.length > 0) {
+          setPosts(data);
+        } else {
+          setPosts(staticPosts);
+        }
+      } catch (error) {
+        console.error('Error fetching posts:', error);
+        setPosts(staticPosts);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchPosts();
+  }, []);
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    });
+  };
+
+  const displayPosts = posts.length > 0 ? posts : staticPosts;
 
   return (
     <section id="blog" className="section-padding bg-background relative overflow-hidden">
@@ -64,7 +118,7 @@ const Blog = () => {
           ref={gridAnimation.ref}
           className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
         >
-          {posts.map((post, index) => (
+          {displayPosts.map((post, index) => (
             <article
               key={post.id}
               className={`group glass border-gradient rounded-2xl overflow-hidden card-hover transition-all duration-500 ${
@@ -74,13 +128,13 @@ const Blog = () => {
             >
               <div className="aspect-[16/10] relative overflow-hidden">
                 <img
-                  src={post.image}
+                  src={post.image_url || "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&h=500&fit=crop"}
                   alt={post.title}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
                 <span className="absolute top-4 left-4 px-3 py-1 rounded-full bg-primary/90 text-primary-foreground text-xs font-medium">
-                  {post.category}
+                  {post.category || 'Motion Design'}
                 </span>
               </div>
 
@@ -88,11 +142,11 @@ const Blog = () => {
                 <div className="flex items-center gap-4 text-muted-foreground text-xs mb-3">
                   <span className="flex items-center gap-1">
                     <Calendar size={12} />
-                    {post.date}
+                    {formatDate(post.created_at)}
                   </span>
                   <span className="flex items-center gap-1">
                     <Clock size={12} />
-                    {post.readTime}
+                    5 min
                   </span>
                 </div>
 
@@ -107,7 +161,7 @@ const Blog = () => {
                 <div className="flex items-center justify-between">
                   <span className="flex items-center gap-2 text-muted-foreground text-xs">
                     <User size={12} />
-                    {post.author}
+                    {post.author || 'Rorschach Motion'}
                   </span>
                   <button className="flex items-center gap-1 text-primary text-sm font-medium group-hover:gap-2 transition-all">
                     Ler mais
