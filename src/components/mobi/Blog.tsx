@@ -2,6 +2,7 @@ import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { Newspaper, ArrowRight, Calendar, Clock, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { Link } from "react-router-dom";
 
 interface BlogPost {
   id: string;
@@ -163,10 +164,13 @@ const Blog = () => {
                     <User size={12} />
                     {post.author || 'Rorschach Motion'}
                   </span>
-                  <button className="flex items-center gap-1 text-primary text-sm font-medium group-hover:gap-2 transition-all">
+                  <Link 
+                    to={`/blog/${post.slug}`}
+                    className="flex items-center gap-1 text-primary text-sm font-medium group-hover:gap-2 transition-all"
+                  >
                     Ler mais
                     <ArrowRight size={14} />
-                  </button>
+                  </Link>
                 </div>
               </div>
             </article>
