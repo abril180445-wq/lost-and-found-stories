@@ -1,4 +1,5 @@
-import { ArrowUp, Heart, Instagram, Linkedin, Globe, Youtube, Facebook } from "lucide-react";
+import { ArrowUp, Heart, Instagram, Linkedin, Globe, Youtube, Facebook, Lock } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 const Footer = () => {
@@ -126,10 +127,19 @@ const Footer = () => {
 
         {/* Bottom */}
         <div className="flex flex-col sm:flex-row items-center justify-between pt-8 border-t border-border/30 gap-4">
-          <p className="text-muted-foreground text-sm flex items-center gap-1">
-            © {new Date().getFullYear()} Rorschach Motion. Feito com{" "}
-            <Heart size={14} className="text-destructive" /> no Brasil.
-          </p>
+          <div className="flex items-center gap-4">
+            <p className="text-muted-foreground text-sm flex items-center gap-1">
+              © {new Date().getFullYear()} Rorschach Motion. Feito com{" "}
+              <Heart size={14} className="text-destructive" /> no Brasil.
+            </p>
+            <Link
+              to="/admin/login"
+              className="text-muted-foreground/50 hover:text-primary text-xs flex items-center gap-1 transition-colors"
+            >
+              <Lock size={12} />
+              Admin
+            </Link>
+          </div>
           <button
             onClick={scrollToTop}
             className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-300"
