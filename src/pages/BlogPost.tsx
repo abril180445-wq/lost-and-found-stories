@@ -93,7 +93,7 @@ const BlogPost = () => {
   
   // Link com prévia (para Facebook/LinkedIn/etc. que não leem meta tags via JS)
   const functionsBaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  const ogPreviewUrl = `${functionsBaseUrl}/functions/v1/og-preview?slug=${encodeURIComponent(slug || '')}&target=${encodeURIComponent(currentUrl)}`;
+  const ogPreviewUrl = `${functionsBaseUrl}/functions/v1/og-preview?slug=${encodeURIComponent(slug || '')}`;
   const ogShareUrl = encodeURIComponent(ogPreviewUrl);
 
   const shareOptions = [

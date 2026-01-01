@@ -14,14 +14,6 @@ function escapeHtml(value: string) {
     .replaceAll("'", '&#39;')
 }
 
-function isAllowedRedirectTarget(target: URL) {
-  const host = target.hostname.toLowerCase()
-  return (
-    target.protocol === 'https:' &&
-    (host.endsWith('.lovableproject.com') || host === 'lovableproject.com')
-  )
-}
-
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -31,9 +23,11 @@ Deno.serve(async (req) => {
   try {
     const url = new URL(req.url)
     const slug = url.searchParams.get('slug')
-    const targetParam = url.searchParams.get('target')
+
+    console.log('og-preview called with slug:', slug)
 
     if (!slug) {
+      console.error('No slug provided')
       return new Response('Slug is required', { status: 400, headers: corsHeaders })
     }
 
@@ -42,6 +36,8 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabase = createClient(supabaseUrl, supabaseKey)
 
+    console.log('Fetching post from database...')
+
     const { data: post, error } = await supabase
       .from('blog_posts')
       .select('title, excerpt, image_url, author')
@@ -49,9 +45,25 @@ Deno.serve(async (req) => {
       .eq('published', true)
       .maybeSingle()
 
-    if (error || !post) {
+    if (error) {
+      console.error('Database error:', error)
+      return new Response('Database error', { status: 500, headers: corsHeaders })
+    }
+
+    if (!post) {
+      console.error('Post not found for slug:', slug)
       return new Response('Post not found', { status: 404, headers: corsHeaders })
     }
+
+    console.log('Post found:', post.title)
+
+    // URL canônica do post (URL final onde o usuário será redirecionado)
+    // Usar o domínio de produção quando disponível
+    const siteUrl = 'https://id-preview--twvmmsrjkfmropwwdjfg.lovableproject.com'
+    const canonicalUrl = `${siteUrl}/blog/${slug}`
+    
+    // URL da edge function para compartilhamento
+    const ogPreviewUrl = `${supabaseUrl}/functions/v1/og-preview?slug=${encodeURIComponent(slug)}`
 
     const imageUrl =
       post.image_url ||
@@ -62,20 +74,9 @@ Deno.serve(async (req) => {
         ? post.excerpt
         : 'Leia mais no blog da Rorschach Motion'
 
-    let targetUrl: string | null = null
-    if (targetParam) {
-      try {
-        const parsed = new URL(targetParam)
-        if (isAllowedRedirectTarget(parsed)) targetUrl = parsed.toString()
-      } catch {
-        // ignore invalid target
-      }
-    }
-
     const title = escapeHtml(post.title)
     const description = escapeHtml(descriptionRaw)
     const author = escapeHtml(post.author || 'Rorschach Motion')
-    const canonical = targetUrl || ''
 
     const html = `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -86,7 +87,7 @@ Deno.serve(async (req) => {
 
   <!-- Open Graph / Facebook / Instagram -->
   <meta property="og:type" content="article" />
-  ${canonical ? `<meta property="og:url" content="${canonical}" />` : ''}
+  <meta property="og:url" content="${canonicalUrl}" />
   <meta property="og:title" content="${title}" />
   <meta property="og:description" content="${description}" />
   <meta property="og:image" content="${imageUrl}" />
@@ -97,13 +98,15 @@ Deno.serve(async (req) => {
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
-  ${canonical ? `<meta name="twitter:url" content="${canonical}" />` : ''}
+  <meta name="twitter:url" content="${canonicalUrl}" />
   <meta name="twitter:title" content="${title}" />
   <meta name="twitter:description" content="${description}" />
   <meta name="twitter:image" content="${imageUrl}" />
 
-  ${canonical ? `<link rel="canonical" href="${canonical}" />` : ''}
-  ${canonical ? `<meta http-equiv="refresh" content="0;url=${canonical}" />` : ''}
+  <link rel="canonical" href="${canonicalUrl}" />
+  
+  <!-- Redirect to actual post after crawlers read meta tags -->
+  <meta http-equiv="refresh" content="0;url=${canonicalUrl}" />
 </head>
 <body>
   <main>
@@ -111,17 +114,19 @@ Deno.serve(async (req) => {
       <h1>${title}</h1>
       <p>${description}</p>
       <p>Por ${author}</p>
-      ${canonical ? `<a href="${canonical}">Ler artigo completo</a>` : ''}
+      <a href="${canonicalUrl}">Ler artigo completo</a>
     </article>
   </main>
-  ${canonical ? `<script>window.location.href = ${JSON.stringify(canonical)};</script>` : ''}
+  <script>window.location.href = "${canonicalUrl}";</script>
 </body>
 </html>`
 
+    console.log('Returning HTML with og:url:', canonicalUrl)
+
     const headers = new Headers(corsHeaders)
     headers.set('Content-Type', 'text/html; charset=utf-8')
-    // cache curto (as redes podem cachear por conta própria)
-    headers.set('Cache-Control', 'public, max-age=300')
+    // Cache curto para permitir atualizações
+    headers.set('Cache-Control', 'public, max-age=60')
 
     return new Response(html, { headers })
   } catch (error) {
