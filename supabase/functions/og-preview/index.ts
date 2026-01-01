@@ -123,12 +123,13 @@ Deno.serve(async (req) => {
 
     console.log('Returning HTML with og:url:', canonicalUrl)
 
-    const headers = new Headers(corsHeaders)
-    headers.set('Content-Type', 'text/html; charset=utf-8')
-    // Cache curto para permitir atualizações
-    headers.set('Cache-Control', 'public, max-age=60')
-
-    return new Response(html, { headers })
+    return new Response(html, { 
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'text/html; charset=utf-8',
+        'Cache-Control': 'public, max-age=60'
+      }
+    })
   } catch (error) {
     console.error('og-preview error:', error)
     return new Response('Internal error', { status: 500, headers: corsHeaders })
