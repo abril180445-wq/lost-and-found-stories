@@ -28,31 +28,31 @@ const Team = () => {
     {
       id: 1,
       name: "Lucas Rorschach",
-      role: "CEO & Diretor Criativo",
+      role: "CEO & Tech Lead",
       image: team1,
-      bio: "Visionário criativo com mais de 10 anos de experiência em motion design e direção de arte.",
+      bio: "Líder técnico com mais de 10 anos de experiência em arquitetura de software e gestão de times.",
       social: {
         linkedin: "#",
-        instagram: "#"
+        github: "#"
       }
     },
     {
       id: 2,
       name: "Marina Costa",
-      role: "Motion Designer Senior",
+      role: "Full Stack Developer",
       image: team2,
-      bio: "Especialista em animação 2D/3D e narrativas visuais impactantes.",
+      bio: "Desenvolvedora full stack especialista em React, Node.js e arquiteturas escaláveis.",
       social: {
         linkedin: "#",
-        instagram: "#"
+        github: "#"
       }
     },
     {
       id: 3,
       name: "Rafael Santos",
-      role: "3D Artist & Compositor",
+      role: "Backend Developer",
       image: team3,
-      bio: "Artista 3D premiado focado em visualizações cinematográficas e VFX.",
+      bio: "Engenheiro de software focado em APIs, microserviços e soluções cloud.",
       social: {
         linkedin: "#",
         github: "#"
@@ -61,9 +61,9 @@ const Team = () => {
     {
       id: 4,
       name: "Camila Oliveira",
-      role: "Video Editor & Colorist",
+      role: "UX/UI Designer",
       image: team4,
-      bio: "Editora de vídeo com expertise em color grading e pós-produção.",
+      bio: "Designer de interfaces com expertise em experiência do usuário e design systems.",
       social: {
         linkedin: "#",
         instagram: "#"
@@ -89,7 +89,7 @@ const Team = () => {
             Nosso <span className="text-gradient">Time</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Conheça os profissionais por trás das suas experiências visuais
+            Conheça os profissionais por trás das suas soluções tecnológicas
           </p>
         </div>
 

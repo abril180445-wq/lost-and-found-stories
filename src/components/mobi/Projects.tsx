@@ -12,31 +12,31 @@ const Projects = () => {
 
   const projects = [
     { 
-      title: "Nebula Brand Identity", 
-      category: "Motion Design", 
+      title: "Sistema de Gestão ERP", 
+      category: "Web App", 
       status: "Concluído",
-      description: "Animação de identidade visual para startup de tecnologia",
+      description: "Plataforma completa de gestão empresarial com módulos integrados",
       image: project1
     },
     { 
-      title: "Flow Motion Graphics", 
-      category: "Motion Graphics", 
+      title: "E-commerce B2B", 
+      category: "E-commerce", 
       status: "Concluído",
-      description: "Vídeo institucional com motion graphics fluido",
+      description: "Marketplace com catálogo, pedidos e integrações de pagamento",
       image: project2
     },
     { 
-      title: "Architecture Visualization", 
-      category: "3D Animation", 
+      title: "App de Delivery", 
+      category: "Mobile", 
       status: "Concluído",
-      description: "Visualização arquitetônica cinematográfica",
+      description: "Aplicativo iOS e Android com rastreamento em tempo real",
       image: project3
     },
     { 
-      title: "Luxury Product Launch", 
-      category: "Brand Animation", 
+      title: "Dashboard Analytics", 
+      category: "SaaS", 
       status: "Em andamento",
-      description: "Campanha de lançamento para marca premium",
+      description: "Plataforma de análise de dados com visualizações interativas",
       image: project4
     },
   ];
@@ -54,7 +54,7 @@ const Projects = () => {
             Nossos <span className="text-gradient">Projetos</span>
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Criações que transformam marcas e contam histórias através do movimento
+            Soluções tecnológicas que transformam negócios e impulsionam resultados
           </p>
         </div>
         <div ref={gridAnimation.ref} className="grid md:grid-cols-2 gap-6">

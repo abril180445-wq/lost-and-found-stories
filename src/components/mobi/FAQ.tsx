@@ -6,11 +6,11 @@ const FAQ = () => {
   const headerAnimation = useScrollAnimation();
 
   const faqs = [
-    { question: "Quanto tempo leva para criar uma animação?", answer: "O prazo varia conforme a complexidade. Um vídeo de 30 segundos pode levar de 1 a 2 semanas. Projetos maiores podem levar de 3 a 8 semanas." },
-    { question: "Qual o investimento para um projeto de motion?", answer: "O valor depende da duração, complexidade e estilo da animação. Trabalhamos com orçamentos personalizados para cada projeto." },
-    { question: "Vocês fazem revisões no projeto?", answer: "Sim! Cada projeto inclui rodadas de revisão em cada etapa (storyboard, animatic e animação final) para garantir sua satisfação." },
-    { question: "Quais formatos de arquivo vocês entregam?", answer: "Entregamos em diversos formatos: MP4, MOV, GIF, WEBM, entre outros. Otimizamos para cada plataforma (web, TV, redes sociais)." },
-    { question: "Vocês fazem animações 3D?", answer: "Sim! Trabalhamos com Cinema 4D, Blender e outros softwares 3D para criar visualizações de produto, ambientes e personagens." },
+    { question: "Quanto tempo leva para desenvolver um sistema?", answer: "O prazo varia conforme a complexidade. Um MVP pode levar de 4 a 8 semanas. Sistemas mais complexos podem levar de 3 a 6 meses." },
+    { question: "Qual o investimento para um projeto de software?", answer: "O valor depende do escopo, complexidade e tecnologias utilizadas. Trabalhamos com orçamentos personalizados para cada projeto." },
+    { question: "Vocês oferecem manutenção e suporte?", answer: "Sim! Oferecemos planos de manutenção mensal que incluem correções, atualizações de segurança e suporte técnico contínuo." },
+    { question: "Quais tecnologias vocês utilizam?", answer: "Trabalhamos com React, Node.js, TypeScript, React Native, Flutter, AWS, Docker e outras tecnologias modernas do mercado." },
+    { question: "Vocês desenvolvem aplicativos mobile?", answer: "Sim! Desenvolvemos apps nativos para iOS e Android, além de aplicações híbridas com React Native e Flutter." },
   ];
 
   return (
