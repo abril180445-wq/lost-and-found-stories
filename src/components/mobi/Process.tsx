@@ -1,4 +1,4 @@
-import { MessageSquare, Palette, Film, Wand2, Rocket, Workflow } from "lucide-react";
+import { Search, Palette, Code, TestTube, Rocket, Workflow } from "lucide-react";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 const Process = () => {
@@ -7,34 +7,34 @@ const Process = () => {
 
   const steps = [
     {
-      icon: MessageSquare,
-      title: "Briefing",
-      description: "Entendemos sua marca, objetivos e mensagem. Definimos o conceito criativo e direção artística.",
-      duration: "1-2 dias",
+      icon: Search,
+      title: "Descoberta",
+      description: "Levantamento de requisitos, análise de negócio e definição do escopo do projeto.",
+      duration: "1-2 semanas",
     },
     {
       icon: Palette,
-      title: "Storyboard",
-      description: "Criamos storyboards e styleframes. Visualizamos a narrativa antes de animar.",
-      duration: "3-5 dias",
+      title: "Design UX/UI",
+      description: "Criamos wireframes, protótipos e interfaces focadas na experiência do usuário.",
+      duration: "1-2 semanas",
     },
     {
-      icon: Film,
-      title: "Animação",
-      description: "Damos vida ao projeto com motion graphics 2D/3D. Iterações para garantir perfeição.",
-      duration: "1-3 semanas",
+      icon: Code,
+      title: "Desenvolvimento",
+      description: "Codificação em sprints ágeis com entregas incrementais e feedback contínuo.",
+      duration: "4-12 semanas",
     },
     {
-      icon: Wand2,
-      title: "Pós-Produção",
-      description: "Color grading, sound design e composição final. Polimento de cada detalhe.",
-      duration: "3-5 dias",
+      icon: TestTube,
+      title: "Testes e QA",
+      description: "Testes automatizados, manuais e de performance para garantir qualidade.",
+      duration: "1-2 semanas",
     },
     {
       icon: Rocket,
-      title: "Entrega",
-      description: "Exportação em múltiplos formatos. Arquivos otimizados para cada plataforma.",
-      duration: "1-2 dias",
+      title: "Deploy",
+      description: "Lançamento em produção com monitoramento, documentação e treinamento.",
+      duration: "1 semana",
     },
   ];
 
@@ -62,7 +62,7 @@ const Process = () => {
             Como <span className="text-gradient">trabalhamos</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
-            Um processo criativo estruturado para garantir resultados visuais impactantes.
+            Um processo ágil e estruturado para garantir entregas de qualidade no prazo.
           </p>
         </div>
 

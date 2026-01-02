@@ -24,34 +24,34 @@ const Testimonials = () => {
       company: "TechStart Brasil",
       role: "CEO",
       image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&h=150&fit=crop&crop=face",
-      text: "A Rorschach Motion elevou nossa marca a outro patamar. O vídeo institucional superou todas as expectativas e triplicou nosso engajamento.",
+      text: "A Rorschach Motion desenvolveu nosso sistema ERP do zero. A qualidade do código e a entrega no prazo superaram todas as expectativas.",
       rating: 5
     },
     {
       id: 2,
       name: "Amanda Costa",
-      company: "Boutique Elegance",
+      company: "Loja Virtual AC",
       role: "Fundadora",
       image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&h=150&fit=crop&crop=face",
-      text: "Criatividade e profissionalismo em cada frame. A animação do nosso logo ficou simplesmente espetacular. Recomendo demais!",
+      text: "Nosso e-commerce ficou incrível! A plataforma é rápida, segura e as vendas aumentaram 200% após o lançamento.",
       rating: 5
     },
     {
       id: 3,
       name: "Fernando Oliveira",
-      company: "Construtora FO",
-      role: "Diretor Comercial",
+      company: "Logística Express",
+      role: "Diretor de TI",
       image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
-      text: "Equipe extremamente talentosa. Os vídeos 3D dos nossos empreendimentos impressionam todos os clientes nas apresentações.",
+      text: "O app de rastreamento que desenvolveram revolucionou nossa operação. Clientes adoram acompanhar entregas em tempo real.",
       rating: 5
     },
     {
       id: 4,
       name: "Juliana Santos",
-      company: "Studio JS Arquitetura",
-      role: "Arquiteta",
+      company: "Clínica Saúde+",
+      role: "Diretora",
       image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&h=150&fit=crop&crop=face",
-      text: "Motion design impecável! Os vídeos do meu portfólio online ficaram cinematográficos. Clientes chegam impressionados!",
+      text: "O sistema de agendamento online facilitou muito nossa rotina. Interface intuitiva e suporte técnico excelente!",
       rating: 5
     }
   ];

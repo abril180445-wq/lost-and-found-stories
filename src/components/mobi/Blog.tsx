@@ -25,33 +25,33 @@ const Blog = () => {
   const staticPosts = [
     {
       id: "static-1",
-      title: "Tendências de Motion Design para 2025",
-      slug: "tendencias-motion-design-2025",
-      excerpt: "Descubra as principais tendências que estão moldando o futuro do motion design e como aplicá-las em seus projetos.",
-      category: "Tendências",
+      title: "Como Construir APIs RESTful Escaláveis",
+      slug: "apis-restful-escalaveis",
+      excerpt: "Aprenda as melhores práticas para desenvolver APIs robustas e escaláveis usando Node.js e TypeScript.",
+      category: "Backend",
       author: "Rorschach Motion",
       created_at: "2024-12-20",
-      image_url: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&h=500&fit=crop"
+      image_url: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&h=500&fit=crop"
     },
     {
       id: "static-2",
-      title: "Cinema 4D vs Blender: Qual escolher?",
-      slug: "cinema-4d-vs-blender",
-      excerpt: "Uma análise comparativa entre as duas ferramentas 3D mais populares do mercado para motion designers.",
-      category: "Ferramentas",
+      title: "React vs Vue: Qual Escolher em 2025?",
+      slug: "react-vs-vue-2025",
+      excerpt: "Uma análise comparativa entre os dois frameworks frontend mais populares do mercado.",
+      category: "Frontend",
       author: "Rorschach Motion",
       created_at: "2024-12-15",
       image_url: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800&h=500&fit=crop"
     },
     {
       id: "static-3",
-      title: "Como criar animações de marca impactantes",
-      slug: "animacoes-marca-impactantes",
-      excerpt: "Guia completo para desenvolver animações de logo e identidade visual que fortalecem a presença da marca.",
-      category: "Tutorial",
+      title: "DevOps: CI/CD com GitHub Actions",
+      slug: "devops-cicd-github-actions",
+      excerpt: "Guia completo para implementar pipelines de integração e deploy contínuo nos seus projetos.",
+      category: "DevOps",
       author: "Rorschach Motion",
       created_at: "2024-12-10",
-      image_url: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=500&fit=crop"
+      image_url: "https://images.unsplash.com/photo-1618401471353-b98afee0b2eb?w=800&h=500&fit=crop"
     }
   ];
 
@@ -111,7 +111,7 @@ const Blog = () => {
             Insights & <span className="text-gradient">Artigos</span>
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Fique por dentro das últimas novidades, tutoriais e tendências do mundo do motion design
+            Fique por dentro das últimas novidades, tutoriais e tendências do mundo do desenvolvimento
           </p>
         </div>
 

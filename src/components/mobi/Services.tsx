@@ -1,4 +1,4 @@
-import { Film, Box, Palette, Wand2, ArrowRight, Sparkles } from "lucide-react";
+import { Globe, Smartphone, Code, Cloud, ArrowRight, Sparkles } from "lucide-react";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 const Services = () => {
@@ -7,31 +7,31 @@ const Services = () => {
 
   const services = [
     {
-      icon: Film,
-      title: "Motion Graphics",
-      description: "Animações 2D dinâmicas que dão vida às suas ideias. Vídeos promocionais, explicativos e conteúdo para redes sociais.",
-      features: ["After Effects", "Animação 2D", "Vídeos Promocionais", "Social Media"],
+      icon: Globe,
+      title: "Desenvolvimento Web",
+      description: "Sites, e-commerces e plataformas web robustas com as melhores tecnologias do mercado.",
+      features: ["React", "Node.js", "TypeScript", "Next.js"],
       color: "from-cyan-500 to-blue-500",
     },
     {
-      icon: Box,
-      title: "Animação 3D",
-      description: "Modelagem e animação 3D de alta qualidade para produtos, arquitetura e experiências imersivas.",
-      features: ["Cinema 4D", "Blender", "Visualização de Produto", "VFX"],
+      icon: Smartphone,
+      title: "Aplicações Mobile",
+      description: "Apps iOS e Android nativos e híbridos com experiência de usuário excepcional.",
+      features: ["React Native", "Flutter", "iOS", "Android"],
       color: "from-violet-500 to-purple-500",
     },
     {
-      icon: Palette,
-      title: "Brand Animation",
-      description: "Animação de logos, intros e identidade visual em movimento que destaca sua marca.",
-      features: ["Logo Animation", "Intro & Outro", "Brand Guidelines", "Style Frames"],
+      icon: Code,
+      title: "APIs e Integrações",
+      description: "APIs RESTful, microserviços e integrações com sistemas externos de forma segura.",
+      features: ["REST API", "GraphQL", "Webhooks", "OAuth"],
       color: "from-emerald-500 to-teal-500",
     },
     {
-      icon: Wand2,
-      title: "Vídeo & Pós-Produção",
-      description: "Edição profissional, color grading e composição para resultados cinematográficos.",
-      features: ["Edição de Vídeo", "Color Grading", "Composição", "Sound Design"],
+      icon: Cloud,
+      title: "DevOps e Cloud",
+      description: "Infraestrutura escalável, deploy automatizado e CI/CD para suas aplicações.",
+      features: ["AWS", "Docker", "Kubernetes", "GitHub Actions"],
       color: "from-orange-500 to-amber-500",
     },
   ];
@@ -60,8 +60,8 @@ const Services = () => {
             Soluções <span className="text-gradient">sob medida</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
-            Oferecemos um portfólio completo de serviços de motion design
-            para dar vida às suas ideias e elevar sua marca.
+            Oferecemos um portfólio completo de serviços de desenvolvimento
+            para transformar suas ideias em sistemas robustos.
           </p>
         </div>
 

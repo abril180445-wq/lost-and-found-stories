@@ -9,27 +9,27 @@ const About = () => {
     {
       icon: Target,
       title: "Missão",
-      description: "Criar experiências visuais memoráveis que elevam marcas e conectam audiências através do movimento.",
+      description: "Desenvolver soluções de software inovadoras que resolvem problemas reais e impulsionam negócios.",
     },
     {
       icon: Eye,
       title: "Visão",
-      description: "Ser a referência em motion design e animação de alta qualidade no Brasil e América Latina.",
+      description: "Ser referência em desenvolvimento de sistemas de alta qualidade no Brasil e América Latina.",
     },
     {
       icon: Heart,
       title: "Valores",
-      description: "Criatividade, excelência técnica, inovação constante e paixão por contar histórias visuais.",
+      description: "Qualidade de código, metodologias ágeis, inovação constante e compromisso com resultados.",
     },
   ];
 
   const features = [
-    "Animações 2D e 3D de alta qualidade",
-    "Motion graphics para marcas",
-    "Vídeos promocionais e institucionais",
-    "Direção de arte visual",
-    "Composição e VFX",
-    "Color grading profissional",
+    "Desenvolvimento Web Full Stack",
+    "Aplicações Mobile iOS e Android",
+    "APIs e Integrações",
+    "Arquitetura de Software",
+    "DevOps e Cloud",
+    "Suporte e Manutenção",
   ];
 
   return (
@@ -56,8 +56,8 @@ const About = () => {
             Quem é a <span className="text-gradient">Rorschach Motion</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
-            Somos um estúdio especializado em motion design e animação,
-            focado em criar experiências visuais que impactam e inspiram.
+            Somos uma software house especializada em desenvolvimento de sistemas,
+            focada em criar soluções tecnológicas que impulsionam negócios.
           </p>
         </div>
 

@@ -40,7 +40,7 @@ const Hero = () => {
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-primary mb-8 animate-fade-up">
             <Sparkles size={16} className="text-primary" />
             <span className="text-primary font-medium text-sm tracking-wide">
-              Motion Design Premium
+              Desenvolvimento de Software
             </span>
           </div>
 
@@ -48,7 +48,7 @@ const Hero = () => {
           <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-foreground mb-6 leading-tight animate-fade-up delay-100">
             Transformamos suas{" "}
             <span className="text-gradient relative">
-              marcas
+              ideias
               <svg
                 className="absolute -bottom-2 left-0 w-full h-3 animate-draw-line"
                 viewBox="0 0 200 12"
@@ -69,13 +69,13 @@ const Hero = () => {
                 </defs>
               </svg>
             </span>{" "}
-            em movimento
+            em sistemas
           </h1>
 
           {/* Subtitle */}
           <p className="text-muted-foreground text-lg sm:text-xl max-w-2xl mx-auto mb-10 leading-relaxed animate-fade-up delay-200">
-            Há mais de 8 anos criando motion graphics, animações 3D e vídeos que
-            impactam audiências e elevam marcas a um novo patamar visual.
+            Há mais de 8 anos desenvolvendo sistemas web, aplicativos mobile e
+            soluções tecnológicas que impulsionam negócios.
           </p>
 
           {/* CTAs */}
