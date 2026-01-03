@@ -8,6 +8,13 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { 
   Plus, 
   Edit, 
@@ -511,12 +518,18 @@ const Admin = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="author">Autor</Label>
-                  <Input
-                    id="author"
+                  <Select
                     value={formData.author}
-                    onChange={(e) => setFormData(prev => ({ ...prev, author: e.target.value }))}
-                    placeholder="Nome do autor"
-                  />
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, author: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o autor" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Rorschach Motion">Rorschach Motion</SelectItem>
+                      <SelectItem value="noface">noface</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
