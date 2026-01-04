@@ -1,10 +1,5 @@
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
-import { Briefcase, Play, ExternalLink } from "lucide-react";
-
-import project1 from "@/assets/project-1.jpg";
-import project2 from "@/assets/project-2.jpg";
-import project3 from "@/assets/project-3.jpg";
-import project4 from "@/assets/project-4.jpg";
+import { Briefcase, ExternalLink } from "lucide-react";
 
 const Projects = () => {
   const headerAnimation = useScrollAnimation();
@@ -12,32 +7,68 @@ const Projects = () => {
 
   const projects = [
     { 
-      title: "Sistema de Gestão ERP", 
+      title: "AgendaGlas", 
+      category: "SaaS", 
+      status: "Concluído",
+      description: "Sistema de agendamentos inteligente para salões e clínicas com WhatsApp",
+      url: "https://agendaglas.lovable.app",
+      color: "from-violet-500 to-purple-600"
+    },
+    { 
+      title: "Tefilin ERP", 
       category: "Web App", 
       status: "Concluído",
-      description: "Plataforma completa de gestão empresarial com módulos integrados",
-      image: project1
+      description: "Sistema de gestão para igrejas com controle de membros e finanças",
+      url: "https://tefilin-53pv.vercel.app",
+      color: "from-blue-500 to-cyan-600"
     },
     { 
-      title: "E-commerce B2B", 
-      category: "E-commerce", 
+      title: "Seminário Teológico", 
+      category: "LMS", 
       status: "Concluído",
-      description: "Marketplace com catálogo, pedidos e integrações de pagamento",
-      image: project2
+      description: "Plataforma de cursos teológicos online com +50 cursos e certificados",
+      url: "https://seminarioteologico.lovable.app",
+      color: "from-amber-500 to-orange-600"
     },
     { 
-      title: "App de Delivery", 
-      category: "Mobile", 
+      title: "Bíblia Tefilin", 
+      category: "Web App", 
       status: "Concluído",
-      description: "Aplicativo iOS e Android com rastreamento em tempo real",
-      image: project3
+      description: "App de estudo bíblico com 2.300+ notas e Harpa Cristã",
+      url: "https://bibliatefilin.lovable.app",
+      color: "from-emerald-500 to-teal-600"
     },
     { 
-      title: "Dashboard Analytics", 
+      title: "Visual Kit Manager", 
       category: "SaaS", 
-      status: "Em andamento",
-      description: "Plataforma de análise de dados com visualizações interativas",
-      image: project4
+      status: "Concluído",
+      description: "Sistema de gerenciamento de kits visuais e materiais de marketing",
+      url: "https://visual-kit-manager.lovable.app",
+      color: "from-rose-500 to-pink-600"
+    },
+    { 
+      title: "Insight Image Suite", 
+      category: "SaaS", 
+      status: "Concluído",
+      description: "Editor de imagens profissional com ferramentas de IA",
+      url: "https://insight-image-suite.lovable.app",
+      color: "from-indigo-500 to-blue-600"
+    },
+    { 
+      title: "TatuagensStyle", 
+      category: "Website", 
+      status: "Concluído",
+      description: "Portfólio para estúdio de tatuagem com gerador de arte via IA",
+      url: "https://tatuagen.lovable.app",
+      color: "from-slate-600 to-zinc-700"
+    },
+    { 
+      title: "Rorschach Motion", 
+      category: "Website", 
+      status: "Concluído",
+      description: "Site institucional da empresa com stack tecnológico e portfólio",
+      url: "https://rorschachmotion.vercel.app",
+      color: "from-primary to-purple-600"
     },
   ];
 
@@ -57,39 +88,42 @@ const Projects = () => {
             Soluções tecnológicas que transformam negócios e impulsionam resultados
           </p>
         </div>
-        <div ref={gridAnimation.ref} className="grid md:grid-cols-2 gap-6">
+        <div ref={gridAnimation.ref} className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {projects.map((project, index) => (
-            <div 
-              key={project.title} 
-              className={`glass border-gradient rounded-2xl overflow-hidden card-hover group transition-all duration-500 ${gridAnimation.isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`} 
+            <a 
+              key={project.title}
+              href={project.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`glass border-gradient rounded-2xl overflow-hidden card-hover group transition-all duration-500 block ${gridAnimation.isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`} 
               style={{ transitionDelay: `${index * 100}ms` }}
             >
               <div className="aspect-video relative overflow-hidden">
-                <img 
-                  src={project.image} 
-                  alt={project.title}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                />
+                <div className={`w-full h-full bg-gradient-to-br ${project.color} flex items-center justify-center`}>
+                  <span className="text-white/90 font-heading font-bold text-xl text-center px-4">
+                    {project.title}
+                  </span>
+                </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <button className="w-16 h-16 rounded-full bg-primary/90 flex items-center justify-center text-primary-foreground hover:bg-primary transition-colors">
-                    <Play size={24} fill="currentColor" />
-                  </button>
+                  <div className="w-14 h-14 rounded-full bg-primary/90 flex items-center justify-center text-primary-foreground">
+                    <ExternalLink size={22} />
+                  </div>
                 </div>
               </div>
-              <div className="p-6">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h3 className="font-heading font-bold text-foreground text-lg mb-1">{project.title}</h3>
-                    <p className="text-muted-foreground text-sm mb-2">{project.description}</p>
+              <div className="p-5">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h3 className="font-heading font-bold text-foreground text-base mb-1 truncate">{project.title}</h3>
+                    <p className="text-muted-foreground text-xs mb-2 line-clamp-2">{project.description}</p>
                     <span className="text-primary text-xs font-medium">{project.category}</span>
                   </div>
-                  <span className={`text-xs px-3 py-1 rounded-full shrink-0 ${project.status === "Concluído" ? "bg-green-500/20 text-green-400" : "bg-primary/20 text-primary"}`}>
+                  <span className="text-[10px] px-2 py-1 rounded-full shrink-0 bg-green-500/20 text-green-400">
                     {project.status}
                   </span>
                 </div>
               </div>
-            </div>
+            </a>
           ))}
         </div>
       </div>
