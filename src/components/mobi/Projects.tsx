@@ -1,9 +1,15 @@
+import { useState } from "react";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { Briefcase, ExternalLink } from "lucide-react";
+
+const getScreenshotUrl = (siteUrl: string) => {
+  return `https://image.thum.io/get/width/640/crop/360/${encodeURIComponent(siteUrl)}`;
+};
 
 const Projects = () => {
   const headerAnimation = useScrollAnimation();
   const gridAnimation = useScrollAnimation();
+  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
 
   const projects = [
     { 
@@ -98,12 +104,23 @@ const Projects = () => {
               className={`glass border-gradient rounded-2xl overflow-hidden card-hover group transition-all duration-500 block ${gridAnimation.isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`} 
               style={{ transitionDelay: `${index * 100}ms` }}
             >
-              <div className="aspect-video relative overflow-hidden">
-                <div className={`w-full h-full bg-gradient-to-br ${project.color} flex items-center justify-center`}>
-                  <span className="text-white/90 font-heading font-bold text-xl text-center px-4">
-                    {project.title}
-                  </span>
-                </div>
+              <div className="aspect-video relative overflow-hidden bg-muted">
+                {!imageErrors[project.url] && (
+                  <img 
+                    src={getScreenshotUrl(project.url)}
+                    alt={`Screenshot de ${project.title}`}
+                    className="w-full h-full object-cover object-top"
+                    loading="lazy"
+                    onError={() => setImageErrors(prev => ({ ...prev, [project.url]: true }))}
+                  />
+                )}
+                {imageErrors[project.url] && (
+                  <div className={`w-full h-full bg-gradient-to-br ${project.color} flex items-center justify-center`}>
+                    <span className="text-white/90 font-heading font-bold text-xl text-center px-4">
+                      {project.title}
+                    </span>
+                  </div>
+                )}
                 <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                   <div className="w-14 h-14 rounded-full bg-primary/90 flex items-center justify-center text-primary-foreground">
