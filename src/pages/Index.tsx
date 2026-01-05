@@ -20,7 +20,7 @@ const Contact = lazy(() => import("@/components/mobi/Contact"));
 const ScrollProgress = lazy(() => import("@/components/mobi/ScrollProgress"));
 const Team = lazy(() => import("@/components/mobi/Team"));
 const Testimonials = lazy(() => import("@/components/mobi/Testimonials"));
-const DeliveredSites = lazy(() => import("@/components/mobi/DeliveredSites"));
+
 const Blog = lazy(() => import("@/components/mobi/Blog"));
 
 const SectionLoader = memo(() => (
@@ -56,7 +56,7 @@ const Index = () => {
         <Suspense fallback={<SectionLoader />}><Technologies /></Suspense>
         <Suspense fallback={<SectionLoader />}><Timeline /></Suspense>
         <Suspense fallback={<SectionLoader />}><Projects /></Suspense>
-        <Suspense fallback={<SectionLoader />}><DeliveredSites /></Suspense>
+        
         <Suspense fallback={<SectionLoader />}><Team /></Suspense>
         <Suspense fallback={<SectionLoader />}><Testimonials /></Suspense>
         <Suspense fallback={<SectionLoader />}><FAQ /></Suspense>
