@@ -1,15 +1,29 @@
 import { useState } from "react";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
-import { Briefcase, ExternalLink } from "lucide-react";
+import { Briefcase, ExternalLink, Loader2 } from "lucide-react";
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
 const getScreenshotUrl = (siteUrl: string) => {
-  return `https://image.thum.io/get/width/640/crop/360/${encodeURIComponent(siteUrl)}`;
+  return `${SUPABASE_URL}/functions/v1/project-thumbnail?url=${encodeURIComponent(siteUrl)}`;
 };
 
 const Projects = () => {
   const headerAnimation = useScrollAnimation();
   const gridAnimation = useScrollAnimation();
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
+  const [imageLoading, setImageLoading] = useState<Record<string, boolean>>(() => 
+    Object.fromEntries([
+      "https://agendaglas.lovable.app",
+      "https://tefilin-53pv.vercel.app",
+      "https://seminarioteologico.lovable.app",
+      "https://bibliatefilin.lovable.app",
+      "https://visual-kit-manager.lovable.app",
+      "https://insight-image-suite.lovable.app",
+      "https://tatuagen.lovable.app",
+      "https://rorschachmotion.vercel.app"
+    ].map(url => [url, true]))
+  );
 
   const projects = [
     { 
@@ -105,15 +119,28 @@ const Projects = () => {
               style={{ transitionDelay: `${index * 100}ms` }}
             >
               <div className="aspect-video relative overflow-hidden bg-muted">
+                {/* Loading skeleton */}
+                {imageLoading[project.url] && !imageErrors[project.url] && (
+                  <div className={`absolute inset-0 bg-gradient-to-br ${project.color} flex items-center justify-center`}>
+                    <Loader2 className="w-8 h-8 text-white/80 animate-spin" />
+                  </div>
+                )}
+                {/* Screenshot image */}
                 {!imageErrors[project.url] && (
                   <img 
                     src={getScreenshotUrl(project.url)}
                     alt={`Screenshot de ${project.title}`}
-                    className="w-full h-full object-cover object-top"
+                    className={`w-full h-full object-cover object-top transition-opacity duration-300 ${imageLoading[project.url] ? 'opacity-0' : 'opacity-100'}`}
                     loading="lazy"
-                    onError={() => setImageErrors(prev => ({ ...prev, [project.url]: true }))}
+                    referrerPolicy="no-referrer"
+                    onLoad={() => setImageLoading(prev => ({ ...prev, [project.url]: false }))}
+                    onError={() => {
+                      setImageErrors(prev => ({ ...prev, [project.url]: true }));
+                      setImageLoading(prev => ({ ...prev, [project.url]: false }));
+                    }}
                   />
                 )}
+                {/* Fallback gradient on error */}
                 {imageErrors[project.url] && (
                   <div className={`w-full h-full bg-gradient-to-br ${project.color} flex items-center justify-center`}>
                     <span className="text-white/90 font-heading font-bold text-xl text-center px-4">
