@@ -9,8 +9,16 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const url = new URL(req.url);
-    const targetUrl = url.searchParams.get('url');
+    let targetUrl: string | null = null;
+
+    // Support both GET (query param) and POST (JSON body)
+    if (req.method === 'POST') {
+      const body = await req.json();
+      targetUrl = body.url || null;
+    } else {
+      const url = new URL(req.url);
+      targetUrl = url.searchParams.get('url');
+    }
 
     if (!targetUrl) {
       return new Response(JSON.stringify({ error: 'Missing url parameter' }), {

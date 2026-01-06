@@ -1,29 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { Briefcase, ExternalLink, Building2, Globe, Loader2 } from "lucide-react";
-
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-
-const getScreenshotUrl = (siteUrl: string) => {
-  return `${SUPABASE_URL}/functions/v1/project-thumbnail?url=${encodeURIComponent(siteUrl)}`;
-};
+import { supabase } from "@/integrations/supabase/client";
 
 const Projects = () => {
   const headerAnimation = useScrollAnimation();
   const gridAnimation = useScrollAnimation();
-  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
-  const [imageLoading, setImageLoading] = useState<Record<string, boolean>>(() => 
-    Object.fromEntries([
-      "https://agendaglas.lovable.app",
-      "https://tefilin-53pv.vercel.app",
-      "https://seminarioteologico.lovable.app",
-      "https://bibliatefilin.lovable.app",
-      "https://visual-kit-manager.lovable.app",
-      "https://insight-image-suite.lovable.app",
-      "https://tatuagen.lovable.app",
-      "https://rorschachmotion.vercel.app"
-    ].map(url => [url, true]))
-  );
+  const [thumbnails, setThumbnails] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState<Record<string, boolean>>({});
+  const [errors, setErrors] = useState<Record<string, boolean>>({});
 
   const projects = [
     { 
@@ -84,6 +69,51 @@ const Projects = () => {
     },
   ];
 
+  useEffect(() => {
+    const fetchThumbnail = async (projectUrl: string) => {
+      setLoading(prev => ({ ...prev, [projectUrl]: true }));
+      
+      try {
+        const { data, error } = await supabase.functions.invoke('project-thumbnail', {
+          body: { url: projectUrl },
+        });
+
+        if (error) {
+          console.error('Error fetching thumbnail for', projectUrl, error);
+          setErrors(prev => ({ ...prev, [projectUrl]: true }));
+          return;
+        }
+
+        // data is a Blob when the function returns binary
+        if (data instanceof Blob) {
+          const blobUrl = URL.createObjectURL(data);
+          setThumbnails(prev => ({ ...prev, [projectUrl]: blobUrl }));
+        } else {
+          // If not a blob, it might be an error response
+          console.error('Unexpected response for', projectUrl, data);
+          setErrors(prev => ({ ...prev, [projectUrl]: true }));
+        }
+      } catch (err) {
+        console.error('Failed to fetch thumbnail for', projectUrl, err);
+        setErrors(prev => ({ ...prev, [projectUrl]: true }));
+      } finally {
+        setLoading(prev => ({ ...prev, [projectUrl]: false }));
+      }
+    };
+
+    // Fetch all thumbnails
+    projects.forEach(project => {
+      fetchThumbnail(project.url);
+    });
+
+    // Cleanup blob URLs on unmount
+    return () => {
+      Object.values(thumbnails).forEach(blobUrl => {
+        URL.revokeObjectURL(blobUrl);
+      });
+    };
+  }, []);
+
   return (
     <section id="projetos" className="section-padding bg-background/50 backdrop-blur-sm relative overflow-hidden">
       <div className="absolute inset-0 dots-pattern opacity-20" />
@@ -110,12 +140,11 @@ const Projects = () => {
             >
               {/* Blurred background layer */}
               <div className="absolute inset-0 overflow-hidden">
-                {!imageErrors[project.url] ? (
+                {thumbnails[project.url] ? (
                   <img 
-                    src={getScreenshotUrl(project.url)}
+                    src={thumbnails[project.url]}
                     alt=""
                     className="w-full h-full object-cover scale-110 blur-xl opacity-40"
-                    loading="lazy"
                   />
                 ) : (
                   <div className={`w-full h-full bg-gradient-to-br ${project.color} opacity-40`} />
@@ -133,25 +162,19 @@ const Projects = () => {
                 
                 {/* Screenshot preview */}
                 <div className="relative aspect-[16/10] rounded-xl overflow-hidden mb-5 border border-border/30 shadow-2xl">
-                  {imageLoading[project.url] && !imageErrors[project.url] && (
+                  {loading[project.url] && !errors[project.url] && (
                     <div className={`absolute inset-0 bg-gradient-to-br ${project.color} flex items-center justify-center`}>
                       <Loader2 className="w-8 h-8 text-white/80 animate-spin" />
                     </div>
                   )}
-                  {!imageErrors[project.url] && (
+                  {thumbnails[project.url] && !errors[project.url] && (
                     <img 
-                      src={getScreenshotUrl(project.url)}
+                      src={thumbnails[project.url]}
                       alt={`Screenshot de ${project.title}`}
-                      className={`w-full h-full object-cover object-top transition-all duration-500 group-hover:scale-105 ${imageLoading[project.url] ? 'opacity-0' : 'opacity-100'}`}
-                      loading="lazy"
-                      onLoad={() => setImageLoading(prev => ({ ...prev, [project.url]: false }))}
-                      onError={() => {
-                        setImageErrors(prev => ({ ...prev, [project.url]: true }));
-                        setImageLoading(prev => ({ ...prev, [project.url]: false }));
-                      }}
+                      className="w-full h-full object-cover object-top transition-all duration-500 group-hover:scale-105"
                     />
                   )}
-                  {imageErrors[project.url] && (
+                  {(errors[project.url] || (!loading[project.url] && !thumbnails[project.url])) && (
                     <div className={`w-full h-full bg-gradient-to-br ${project.color} flex items-center justify-center`}>
                       <span className="text-white/90 font-heading font-bold text-lg text-center px-4">
                         {project.title}
