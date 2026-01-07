@@ -1,14 +1,16 @@
-import { useState } from "react";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
-import { Briefcase, ExternalLink, Building2, Globe, Loader2, CheckCircle2 } from "lucide-react";
+import { useState } from "react";
+import { ExternalLink, CheckCircle, Globe, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
 const Projects = () => {
-  const headerAnimation = useScrollAnimation();
-  const gridAnimation = useScrollAnimation();
-  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
+  const headerAnimation = useScrollAnimation({ threshold: 0.2 });
+  const gridAnimation = useScrollAnimation({ threshold: 0.1 });
   const [imageLoading, setImageLoading] = useState<Record<string, boolean>>({});
+  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
+  const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
 
   const projects = [
     { 
@@ -17,8 +19,6 @@ const Projects = () => {
       clientOrSegment: "Salões de Beleza e Clínicas",
       type: "SaaS",
       url: "https://agendaglas.lovable.app",
-      gradient: "from-violet-600 via-purple-600 to-indigo-700",
-      accent: "violet"
     },
     { 
       title: "Tefilin", 
@@ -26,8 +26,6 @@ const Projects = () => {
       clientOrSegment: "Igrejas e Ministérios",
       type: "Web App",
       url: "https://tefilin-53pv.vercel.app",
-      gradient: "from-blue-600 via-cyan-600 to-teal-600",
-      accent: "blue"
     },
     { 
       title: "Seminário Teológico", 
@@ -35,8 +33,6 @@ const Projects = () => {
       clientOrSegment: "Instituições de Ensino",
       type: "LMS",
       url: "https://seminarioteologico.lovable.app",
-      gradient: "from-amber-500 via-orange-500 to-red-500",
-      accent: "amber"
     },
     { 
       title: "Bíblia Tefilin", 
@@ -44,8 +40,6 @@ const Projects = () => {
       clientOrSegment: "Comunidade Cristã",
       type: "Web App",
       url: "https://bibliatefilin.lovable.app",
-      gradient: "from-emerald-500 via-teal-500 to-cyan-600",
-      accent: "emerald"
     },
     { 
       title: "Visual Kit Manager", 
@@ -53,8 +47,6 @@ const Projects = () => {
       clientOrSegment: "Agências de Marketing",
       type: "SaaS",
       url: "https://visual-kit-manager.lovable.app",
-      gradient: "from-rose-500 via-pink-500 to-fuchsia-600",
-      accent: "rose"
     },
     { 
       title: "Insight Image Suite", 
@@ -62,8 +54,6 @@ const Projects = () => {
       clientOrSegment: "Designers e Criadores",
       type: "SaaS",
       url: "https://insight-image-suite.lovable.app",
-      gradient: "from-indigo-600 via-purple-600 to-pink-600",
-      accent: "indigo"
     },
     { 
       title: "TatuagensStyle", 
@@ -71,8 +61,6 @@ const Projects = () => {
       clientOrSegment: "Estúdios de Tatuagem",
       type: "Website",
       url: "https://tatuagen.lovable.app",
-      gradient: "from-slate-700 via-zinc-700 to-neutral-800",
-      accent: "slate"
     },
     { 
       title: "Rorschach Motion", 
@@ -80,145 +68,149 @@ const Projects = () => {
       clientOrSegment: "Rorschach Motion",
       type: "Website",
       url: "https://rorschachmotion.vercel.app",
-      gradient: "from-primary via-purple-600 to-pink-600",
-      accent: "primary"
     },
   ];
 
-  const getScreenshotUrl = (siteUrl: string) => {
-    return `${SUPABASE_URL}/functions/v1/project-thumbnail?url=${encodeURIComponent(siteUrl)}`;
+  const loadImage = async (projectUrl: string) => {
+    if (imageUrls[projectUrl] || imageLoading[projectUrl]) return;
+    
+    setImageLoading(prev => ({ ...prev, [projectUrl]: true }));
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('project-thumbnail', {
+        body: { url: projectUrl }
+      });
+      
+      if (error || !data) {
+        throw new Error('Failed to load');
+      }
+      
+      const blobUrl = URL.createObjectURL(data);
+      setImageUrls(prev => ({ ...prev, [projectUrl]: blobUrl }));
+    } catch (err) {
+      console.error('Error loading screenshot:', err);
+      setImageErrors(prev => ({ ...prev, [projectUrl]: true }));
+    } finally {
+      setImageLoading(prev => ({ ...prev, [projectUrl]: false }));
+    }
   };
 
   return (
-    <section id="projetos" className="section-padding bg-gradient-to-b from-background via-background/95 to-muted/30 relative overflow-hidden">
-      {/* Background decorations */}
-      <div className="absolute inset-0 dots-pattern opacity-10" />
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl" />
-      
-      <div className="container-custom relative z-10">
-        <div ref={headerAnimation.ref} className={`text-center mb-16 transition-all duration-700 ${headerAnimation.isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}>
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-primary mb-6">
-            <Briefcase size={16} className="text-primary" />
-            <span className="text-primary font-medium text-sm tracking-wide">Portfólio</span>
-          </div>
-          <h2 className="font-heading text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6">
-            Trabalhos <span className="text-gradient">Entregues</span>
+    <section id="projetos" className="section-padding bg-background relative overflow-hidden">
+      {/* Subtle background pattern */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute inset-0" style={{ 
+          backgroundImage: 'radial-gradient(circle at 1px 1px, hsl(var(--foreground)) 1px, transparent 0)',
+          backgroundSize: '40px 40px'
+        }} />
+      </div>
+
+      <div className="container mx-auto px-4 relative z-10">
+        {/* Header */}
+        <div 
+          ref={headerAnimation.ref}
+          className={`text-center mb-16 transition-all duration-700 ${headerAnimation.isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+        >
+          <span className="inline-block px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-medium mb-4">
+            Portfólio
+          </span>
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
+            Trabalhos Entregues
           </h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
-            Projetos reais que transformaram negócios e impulsionaram resultados
+          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+            Projetos reais que transformaram negócios e ideias em soluções digitais de sucesso
           </p>
         </div>
-        
-        <div ref={gridAnimation.ref} className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+
+        {/* Projects Grid */}
+        <div ref={gridAnimation.ref} className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {projects.map((project, index) => (
             <a
               key={project.title}
               href={project.url}
               target="_blank"
               rel="noopener noreferrer"
-              className={`group relative rounded-2xl overflow-hidden transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-primary/10 ${gridAnimation.isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`} 
+              onMouseEnter={() => loadImage(project.url)}
+              className={`group relative bg-card border border-border rounded-xl overflow-hidden transition-all duration-500 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5 ${gridAnimation.isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`} 
               style={{ transitionDelay: `${index * 80}ms` }}
             >
-              {/* Card background with gradient */}
-              <div className={`absolute inset-0 bg-gradient-to-br ${project.gradient} opacity-90`} />
-              
-              {/* Decorative pattern overlay */}
-              <div className="absolute inset-0 opacity-20">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-                <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2" />
-              </div>
-              
-              {/* Screenshot preview */}
-              <div className="relative aspect-[4/3] overflow-hidden">
-                {imageLoading[project.url] !== false && !imageErrors[project.url] && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-sm">
-                    <Loader2 className="w-8 h-8 text-white animate-spin" />
+              {/* Screenshot Area */}
+              <div className="relative aspect-video bg-muted overflow-hidden">
+                {/* Loading State */}
+                {imageLoading[project.url] && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-muted">
+                    <Loader2 className="w-8 h-8 text-primary animate-spin" />
                   </div>
                 )}
                 
-                {!imageErrors[project.url] && (
-                  <img 
-                    src={getScreenshotUrl(project.url)}
-                    alt={`Screenshot de ${project.title}`}
-                    className={`w-full h-full object-cover object-top transition-all duration-700 group-hover:scale-110 ${imageLoading[project.url] === false ? 'opacity-100' : 'opacity-0'}`}
-                    loading="lazy"
-                    onLoad={() => setImageLoading(prev => ({ ...prev, [project.url]: false }))}
-                    onError={() => {
-                      setImageErrors(prev => ({ ...prev, [project.url]: true }));
-                      setImageLoading(prev => ({ ...prev, [project.url]: false }));
-                    }}
+                {/* Image */}
+                {imageUrls[project.url] && !imageErrors[project.url] && (
+                  <img
+                    src={imageUrls[project.url]}
+                    alt={`Preview de ${project.title}`}
+                    className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
                   />
                 )}
                 
-                {imageErrors[project.url] && (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center p-4">
-                      <div className="w-16 h-16 mx-auto mb-3 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                        <Globe className="w-8 h-8 text-white" />
-                      </div>
-                      <span className="text-white/90 font-heading font-bold text-sm">
-                        {project.title}
-                      </span>
-                    </div>
+                {/* Fallback when no image loaded yet or error */}
+                {!imageUrls[project.url] && !imageLoading[project.url] && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-muted">
+                    <Globe className="w-12 h-12 text-muted-foreground/50" />
+                    <span className="text-xs text-muted-foreground">Passe o mouse para carregar</span>
                   </div>
                 )}
                 
-                {/* Gradient overlay for text readability */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-              </div>
-              
-              {/* Content */}
-              <div className="relative p-4 bg-gradient-to-t from-black/60 to-transparent -mt-20 pt-24">
-                {/* Status badge */}
-                <div className="absolute top-4 right-4">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-green-500/90 text-white shadow-lg">
-                    <CheckCircle2 size={10} />
-                    Entregue
+                {/* Error State */}
+                {imageErrors[project.url] && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-muted">
+                    <Globe className="w-12 h-12 text-muted-foreground/50" />
+                    <span className="text-xs text-muted-foreground">{project.title}</span>
+                  </div>
+                )}
+
+                {/* Hover Overlay */}
+                <div className="absolute inset-0 bg-primary/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                  <span className="flex items-center gap-2 text-primary-foreground font-medium">
+                    Ver projeto <ExternalLink className="w-4 h-4" />
                   </span>
                 </div>
-                
-                {/* Project info */}
-                <div className="space-y-2">
-                  <h3 className="font-heading font-bold text-white text-lg leading-tight">
+
+                {/* Badge */}
+                <div className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/90 backdrop-blur-sm rounded-full text-white text-xs font-medium">
+                  <CheckCircle className="w-3 h-3" />
+                  Entregue
+                </div>
+              </div>
+
+              {/* Info Area - Clean solid background */}
+              <div className="p-5 bg-card">
+                <div className="flex items-start justify-between gap-3 mb-2">
+                  <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
                     {project.title}
                   </h3>
-                  <p className="text-white/70 text-sm line-clamp-1">
-                    {project.subtitle}
-                  </p>
-                  
-                  <div className="flex items-center gap-3 pt-1">
-                    <div className="flex items-center gap-1.5 text-white/60 text-xs">
-                      <Building2 size={12} />
-                      <span className="truncate max-w-[100px]">{project.clientOrSegment}</span>
-                    </div>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-white/20 text-white">
-                      {project.type}
-                    </span>
-                  </div>
+                  <span className="shrink-0 px-2 py-0.5 bg-muted text-muted-foreground text-xs rounded">
+                    {project.type}
+                  </span>
                 </div>
-                
-                {/* Hover CTA */}
-                <div className="mt-3 flex items-center gap-2 text-white font-medium text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <span>Ver projeto</span>
-                  <ExternalLink size={14} className="transition-transform group-hover:translate-x-1" />
-                </div>
+                <p className="text-sm text-muted-foreground mb-3">
+                  {project.subtitle}
+                </p>
+                <p className="text-xs text-muted-foreground/70">
+                  {project.clientOrSegment}
+                </p>
               </div>
             </a>
           ))}
         </div>
-        
-        {/* Bottom CTA */}
-        <div className={`mt-12 text-center transition-all duration-700 delay-500 ${gridAnimation.isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}>
-          <p className="text-muted-foreground mb-4">
-            Quer um projeto assim para sua empresa?
-          </p>
+
+        {/* CTA */}
+        <div className="text-center mt-16">
           <a
             href="#contato"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-primary text-primary-foreground rounded-full font-medium hover:bg-primary/90 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary/25"
           >
-            Fale Conosco
-            <ExternalLink size={16} />
+            Quero meu projeto
+            <ExternalLink className="w-4 h-4" />
           </a>
         </div>
       </div>
