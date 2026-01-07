@@ -1,9 +1,7 @@
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
-import { useState } from "react";
-import { ExternalLink, CheckCircle, Globe, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ExternalLink, CheckCircle, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
 const Projects = () => {
   const headerAnimation = useScrollAnimation({ threshold: 0.2 });
@@ -71,29 +69,36 @@ const Projects = () => {
     },
   ];
 
-  const loadImage = async (projectUrl: string) => {
-    if (imageUrls[projectUrl] || imageLoading[projectUrl]) return;
-    
-    setImageLoading(prev => ({ ...prev, [projectUrl]: true }));
-    
-    try {
-      const { data, error } = await supabase.functions.invoke('project-thumbnail', {
-        body: { url: projectUrl }
-      });
-      
-      if (error || !data) {
-        throw new Error('Failed to load');
+  // Load all images on mount
+  useEffect(() => {
+    const loadAllImages = async () => {
+      for (const project of projects) {
+        if (imageUrls[project.url] || imageLoading[project.url]) continue;
+        
+        setImageLoading(prev => ({ ...prev, [project.url]: true }));
+        
+        try {
+          const { data, error } = await supabase.functions.invoke('project-thumbnail', {
+            body: { url: project.url }
+          });
+          
+          if (error || !data) {
+            throw new Error('Failed to load');
+          }
+          
+          const blobUrl = URL.createObjectURL(data);
+          setImageUrls(prev => ({ ...prev, [project.url]: blobUrl }));
+        } catch (err) {
+          console.error('Error loading screenshot:', err);
+          setImageErrors(prev => ({ ...prev, [project.url]: true }));
+        } finally {
+          setImageLoading(prev => ({ ...prev, [project.url]: false }));
+        }
       }
-      
-      const blobUrl = URL.createObjectURL(data);
-      setImageUrls(prev => ({ ...prev, [projectUrl]: blobUrl }));
-    } catch (err) {
-      console.error('Error loading screenshot:', err);
-      setImageErrors(prev => ({ ...prev, [projectUrl]: true }));
-    } finally {
-      setImageLoading(prev => ({ ...prev, [projectUrl]: false }));
-    }
-  };
+    };
+    
+    loadAllImages();
+  }, []);
 
   return (
     <section id="projetos" className="section-padding bg-background relative overflow-hidden">
@@ -130,15 +135,14 @@ const Projects = () => {
               href={project.url}
               target="_blank"
               rel="noopener noreferrer"
-              onMouseEnter={() => loadImage(project.url)}
               className={`group relative bg-card border border-border rounded-xl overflow-hidden transition-all duration-500 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5 ${gridAnimation.isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`} 
               style={{ transitionDelay: `${index * 80}ms` }}
             >
               {/* Screenshot Area */}
               <div className="relative aspect-video bg-muted overflow-hidden">
                 {/* Loading State */}
-                {imageLoading[project.url] && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-muted">
+                {(imageLoading[project.url] || (!imageUrls[project.url] && !imageErrors[project.url])) && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-muted animate-pulse">
                     <Loader2 className="w-8 h-8 text-primary animate-spin" />
                   </div>
                 )}
@@ -152,19 +156,12 @@ const Projects = () => {
                   />
                 )}
                 
-                {/* Fallback when no image loaded yet or error */}
-                {!imageUrls[project.url] && !imageLoading[project.url] && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-muted">
-                    <Globe className="w-12 h-12 text-muted-foreground/50" />
-                    <span className="text-xs text-muted-foreground">Passe o mouse para carregar</span>
-                  </div>
-                )}
-                
-                {/* Error State */}
                 {imageErrors[project.url] && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-muted">
-                    <Globe className="w-12 h-12 text-muted-foreground/50" />
-                    <span className="text-xs text-muted-foreground">{project.title}</span>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-muted to-muted/80">
+                    <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center">
+                      <span className="text-2xl font-bold text-primary">{project.title.charAt(0)}</span>
+                    </div>
+                    <span className="text-sm font-medium text-foreground">{project.title}</span>
                   </div>
                 )}
 
