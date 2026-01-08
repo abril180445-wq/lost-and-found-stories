@@ -1,22 +1,45 @@
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { useState, useEffect } from "react";
-import { ExternalLink, CheckCircle, Loader2 } from "lucide-react";
+import { ExternalLink, CheckCircle, Loader2, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import ProjectModal from "./ProjectModal";
+
+interface ProjectScreen {
+  path: string;
+  label: string;
+}
+
+interface Project {
+  title: string;
+  subtitle: string;
+  clientOrSegment: string;
+  type: string;
+  url: string;
+  screens: ProjectScreen[];
+}
 
 const Projects = () => {
   const headerAnimation = useScrollAnimation({ threshold: 0.2 });
   const gridAnimation = useScrollAnimation({ threshold: 0.1 });
-  const [imageLoading, setImageLoading] = useState<Record<string, boolean>>({});
-  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
-  const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
+  
+  // State for screenshots: { [projectUrl]: [screenshot1, screenshot2, screenshot3] }
+  const [screenshots, setScreenshots] = useState<Record<string, string[]>>({});
+  const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
-  const projects = [
+  const projects: Project[] = [
     { 
       title: "AgendaGlas", 
       subtitle: "Sistema de Agendamentos",
       clientOrSegment: "Salões de Beleza e Clínicas",
       type: "SaaS",
       url: "https://agendaglas.lovable.app",
+      screens: [
+        { path: "", label: "Dashboard" },
+        { path: "/agendamentos", label: "Agendamentos" },
+        { path: "/clientes", label: "Clientes" },
+      ]
     },
     { 
       title: "Tefilin", 
@@ -24,6 +47,11 @@ const Projects = () => {
       clientOrSegment: "Igrejas e Ministérios",
       type: "Web App",
       url: "https://tefilin-53pv.vercel.app",
+      screens: [
+        { path: "", label: "Dashboard" },
+        { path: "/membros", label: "Membros" },
+        { path: "/financeiro", label: "Financeiro" },
+      ]
     },
     { 
       title: "Seminário Teológico", 
@@ -31,6 +59,11 @@ const Projects = () => {
       clientOrSegment: "Instituições de Ensino",
       type: "LMS",
       url: "https://seminarioteologico.lovable.app",
+      screens: [
+        { path: "", label: "Home" },
+        { path: "/cursos", label: "Cursos" },
+        { path: "/aulas", label: "Aulas" },
+      ]
     },
     { 
       title: "Bíblia Tefilin", 
@@ -38,6 +71,11 @@ const Projects = () => {
       clientOrSegment: "Comunidade Cristã",
       type: "Web App",
       url: "https://bibliatefilin.lovable.app",
+      screens: [
+        { path: "", label: "Home" },
+        { path: "/livros", label: "Livros" },
+        { path: "/leitura", label: "Leitura" },
+      ]
     },
     { 
       title: "Visual Kit Manager", 
@@ -45,6 +83,11 @@ const Projects = () => {
       clientOrSegment: "Agências de Marketing",
       type: "SaaS",
       url: "https://visual-kit-manager.lovable.app",
+      screens: [
+        { path: "", label: "Dashboard" },
+        { path: "/projetos", label: "Projetos" },
+        { path: "/biblioteca", label: "Biblioteca" },
+      ]
     },
     { 
       title: "Insight Image Suite", 
@@ -52,6 +95,11 @@ const Projects = () => {
       clientOrSegment: "Designers e Criadores",
       type: "SaaS",
       url: "https://insight-image-suite.lovable.app",
+      screens: [
+        { path: "", label: "Editor" },
+        { path: "/projetos", label: "Projetos" },
+        { path: "/galeria", label: "Galeria" },
+      ]
     },
     { 
       title: "TatuagensStyle", 
@@ -59,6 +107,11 @@ const Projects = () => {
       clientOrSegment: "Estúdios de Tatuagem",
       type: "Website",
       url: "https://tatuagen.lovable.app",
+      screens: [
+        { path: "", label: "Home" },
+        { path: "/portfolio", label: "Portfólio" },
+        { path: "/artistas", label: "Artistas" },
+      ]
     },
     { 
       title: "Rorschach Motion", 
@@ -66,39 +119,68 @@ const Projects = () => {
       clientOrSegment: "Rorschach Motion",
       type: "Website",
       url: "https://rorschachmotion.vercel.app",
+      screens: [
+        { path: "", label: "Home" },
+        { path: "/portfolio", label: "Portfólio" },
+        { path: "/servicos", label: "Serviços" },
+      ]
     },
   ];
 
-  // Load all images on mount
+  // Load screenshots for all projects on mount
   useEffect(() => {
-    const loadAllImages = async () => {
+    const loadAllScreenshots = async () => {
       for (const project of projects) {
-        if (imageUrls[project.url] || imageLoading[project.url]) continue;
+        if (screenshots[project.url]?.length > 0 || loadingStates[project.url]) continue;
         
-        setImageLoading(prev => ({ ...prev, [project.url]: true }));
+        setLoadingStates(prev => ({ ...prev, [project.url]: true }));
         
-        try {
-          const { data, error } = await supabase.functions.invoke('project-thumbnail', {
-            body: { url: project.url }
-          });
-          
-          if (error || !data) {
-            throw new Error('Failed to load');
+        const projectScreenshots: string[] = [];
+        
+        // Load each screen
+        for (const screen of project.screens) {
+          const fullUrl = project.url + screen.path;
+          try {
+            const { data, error } = await supabase.functions.invoke('firecrawl-screenshot', {
+              body: { url: fullUrl }
+            });
+            
+            if (!error && data?.success && data?.screenshot) {
+              // Screenshot comes as base64, may or may not have data prefix
+              const screenshotUrl = data.screenshot.startsWith('data:') 
+                ? data.screenshot 
+                : `data:image/png;base64,${data.screenshot}`;
+              projectScreenshots.push(screenshotUrl);
+            } else {
+              console.error('Failed to load screenshot for', fullUrl, error || data?.error);
+              projectScreenshots.push(''); // Empty string for failed screenshots
+            }
+          } catch (err) {
+            console.error('Error loading screenshot:', fullUrl, err);
+            projectScreenshots.push('');
           }
-          
-          const blobUrl = URL.createObjectURL(data);
-          setImageUrls(prev => ({ ...prev, [project.url]: blobUrl }));
-        } catch (err) {
-          console.error('Error loading screenshot:', err);
-          setImageErrors(prev => ({ ...prev, [project.url]: true }));
-        } finally {
-          setImageLoading(prev => ({ ...prev, [project.url]: false }));
         }
+        
+        setScreenshots(prev => ({ ...prev, [project.url]: projectScreenshots }));
+        setLoadingStates(prev => ({ ...prev, [project.url]: false }));
       }
     };
     
-    loadAllImages();
+    loadAllScreenshots();
   }, []);
+
+  const openModal = (project: Project) => {
+    setSelectedProject(project);
+    setModalOpen(true);
+  };
+
+  const getMainScreenshot = (projectUrl: string) => {
+    return screenshots[projectUrl]?.[0] || '';
+  };
+
+  const isLoading = (projectUrl: string) => {
+    return loadingStates[projectUrl] || (!screenshots[projectUrl] && !loadingStates[projectUrl]);
+  };
 
   return (
     <section id="projetos" className="section-padding bg-background relative overflow-hidden">
@@ -129,75 +211,125 @@ const Projects = () => {
 
         {/* Projects Grid */}
         <div ref={gridAnimation.ref} className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {projects.map((project, index) => (
-            <a
-              key={project.title}
-              href={project.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`group relative bg-card border border-border rounded-xl overflow-hidden transition-all duration-500 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5 ${gridAnimation.isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`} 
-              style={{ transitionDelay: `${index * 80}ms` }}
-            >
-              {/* Screenshot Area */}
-              <div className="relative aspect-video bg-muted overflow-hidden">
-                {/* Loading State */}
-                {(imageLoading[project.url] || (!imageUrls[project.url] && !imageErrors[project.url])) && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-muted animate-pulse">
-                    <Loader2 className="w-8 h-8 text-primary animate-spin" />
-                  </div>
-                )}
-                
-                {/* Image */}
-                {imageUrls[project.url] && !imageErrors[project.url] && (
-                  <img
-                    src={imageUrls[project.url]}
-                    alt={`Preview de ${project.title}`}
-                    className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
-                  />
-                )}
-                
-                {imageErrors[project.url] && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-muted to-muted/80">
-                    <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <span className="text-2xl font-bold text-primary">{project.title.charAt(0)}</span>
+          {projects.map((project, index) => {
+            const mainScreenshot = getMainScreenshot(project.url);
+            const projectScreenshots = screenshots[project.url] || [];
+            const loading = isLoading(project.url);
+            const hasValidScreenshots = projectScreenshots.some(s => s);
+            
+            return (
+              <div
+                key={project.title}
+                className={`group relative bg-card border border-border rounded-xl overflow-hidden transition-all duration-500 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5 ${gridAnimation.isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`} 
+                style={{ transitionDelay: `${index * 80}ms` }}
+              >
+                {/* Main Screenshot Area */}
+                <div 
+                  className="relative aspect-video bg-muted overflow-hidden cursor-pointer"
+                  onClick={() => openModal(project)}
+                >
+                  {/* Loading State */}
+                  {loading && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-muted animate-pulse">
+                      <Loader2 className="w-8 h-8 text-primary animate-spin" />
                     </div>
-                    <span className="text-sm font-medium text-foreground">{project.title}</span>
+                  )}
+                  
+                  {/* Main Image */}
+                  {!loading && mainScreenshot && (
+                    <img
+                      src={mainScreenshot}
+                      alt={`Preview de ${project.title}`}
+                      className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
+                    />
+                  )}
+                  
+                  {/* Fallback */}
+                  {!loading && !mainScreenshot && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-muted to-muted/80">
+                      <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center">
+                        <span className="text-2xl font-bold text-primary">{project.title.charAt(0)}</span>
+                      </div>
+                      <span className="text-sm font-medium text-foreground">{project.title}</span>
+                    </div>
+                  )}
+
+                  {/* Hover Overlay */}
+                  <div className="absolute inset-0 bg-primary/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                    <span className="flex items-center gap-2 text-primary-foreground font-medium">
+                      <Eye className="w-5 h-5" /> Ver telas
+                    </span>
+                  </div>
+
+                  {/* Badge */}
+                  <div className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/90 backdrop-blur-sm rounded-full text-white text-xs font-medium">
+                    <CheckCircle className="w-3 h-3" />
+                    Entregue
+                  </div>
+                </div>
+
+                {/* Thumbnail strip - 3 small previews */}
+                {!loading && hasValidScreenshots && (
+                  <div className="flex gap-1 p-2 bg-muted/50">
+                    {project.screens.map((screen, screenIndex) => {
+                      const screenshot = projectScreenshots[screenIndex];
+                      return (
+                        <button
+                          key={screenIndex}
+                          onClick={() => {
+                            setSelectedProject(project);
+                            setModalOpen(true);
+                          }}
+                          className="flex-1 aspect-video rounded overflow-hidden border border-border hover:border-primary/50 transition-colors"
+                        >
+                          {screenshot ? (
+                            <img
+                              src={screenshot}
+                              alt={screen.label}
+                              className="w-full h-full object-cover object-top"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-muted flex items-center justify-center">
+                              <span className="text-[8px] text-muted-foreground">{screen.label}</span>
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
 
-                {/* Hover Overlay */}
-                <div className="absolute inset-0 bg-primary/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                  <span className="flex items-center gap-2 text-primary-foreground font-medium">
-                    Ver projeto <ExternalLink className="w-4 h-4" />
-                  </span>
-                </div>
-
-                {/* Badge */}
-                <div className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/90 backdrop-blur-sm rounded-full text-white text-xs font-medium">
-                  <CheckCircle className="w-3 h-3" />
-                  Entregue
+                {/* Info Area */}
+                <div className="p-5 bg-card">
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
+                      {project.title}
+                    </h3>
+                    <span className="shrink-0 px-2 py-0.5 bg-muted text-muted-foreground text-xs rounded">
+                      {project.type}
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    {project.subtitle}
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-muted-foreground/70">
+                      {project.clientOrSegment}
+                    </p>
+                    <a
+                      href={project.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-xs text-primary hover:underline flex items-center gap-1"
+                    >
+                      Acessar <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
                 </div>
               </div>
-
-              {/* Info Area - Clean solid background */}
-              <div className="p-5 bg-card">
-                <div className="flex items-start justify-between gap-3 mb-2">
-                  <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
-                    {project.title}
-                  </h3>
-                  <span className="shrink-0 px-2 py-0.5 bg-muted text-muted-foreground text-xs rounded">
-                    {project.type}
-                  </span>
-                </div>
-                <p className="text-sm text-muted-foreground mb-3">
-                  {project.subtitle}
-                </p>
-                <p className="text-xs text-muted-foreground/70">
-                  {project.clientOrSegment}
-                </p>
-              </div>
-            </a>
-          ))}
+            );
+          })}
         </div>
 
         {/* CTA */}
@@ -211,6 +343,16 @@ const Projects = () => {
           </a>
         </div>
       </div>
+
+      {/* Modal */}
+      <ProjectModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        project={selectedProject}
+        screenshots={selectedProject ? (screenshots[selectedProject.url] || []) : []}
+        screenshotLabels={selectedProject ? selectedProject.screens.map(s => s.label) : []}
+        isLoading={selectedProject ? loadingStates[selectedProject.url] : false}
+      />
     </section>
   );
 };

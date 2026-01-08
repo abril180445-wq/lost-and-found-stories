@@ -31,3 +31,6 @@ verify_jwt = false
 
 [functions.project-thumbnail]
 verify_jwt = false
+
+[functions.firecrawl-screenshot]
+verify_jwt = false
