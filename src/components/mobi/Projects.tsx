@@ -146,11 +146,16 @@ const Projects = () => {
             });
             
             if (!error && data?.success && data?.screenshot) {
-              // Screenshot comes as base64, may or may not have data prefix
-              const screenshotUrl = data.screenshot.startsWith('data:') 
-                ? data.screenshot 
-                : `data:image/png;base64,${data.screenshot}`;
-              projectScreenshots.push(screenshotUrl);
+              const raw = String(data.screenshot);
+
+              // Firecrawl can return either a public URL OR a base64 payload.
+              const screenshotSrc = raw.startsWith("data:")
+                ? raw
+                : raw.startsWith("http://") || raw.startsWith("https://")
+                  ? raw
+                  : `data:image/png;base64,${raw}`;
+
+              projectScreenshots.push(screenshotSrc);
             } else {
               console.error('Failed to load screenshot for', fullUrl, error || data?.error);
               projectScreenshots.push(''); // Empty string for failed screenshots
