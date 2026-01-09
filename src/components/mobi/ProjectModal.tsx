@@ -22,15 +22,20 @@ const ProjectModal = ({ isOpen, onClose, project, screenshots, screenshotLabels,
 
   if (!project) return null;
 
+  // Keep all 3 positions - use placeholder for failed screenshots
+  const totalScreens = screenshots.length;
+  const hasAnyValid = screenshots.some(Boolean);
+
   const handlePrev = () => {
-    setCurrentIndex((prev) => (prev === 0 ? screenshots.length - 1 : prev - 1));
+    setCurrentIndex((prev) => (prev === 0 ? totalScreens - 1 : prev - 1));
   };
 
   const handleNext = () => {
-    setCurrentIndex((prev) => (prev === screenshots.length - 1 ? 0 : prev + 1));
+    setCurrentIndex((prev) => (prev === totalScreens - 1 ? 0 : prev + 1));
   };
 
-  const validScreenshots = screenshots.filter(Boolean);
+  const currentScreenshot = screenshots[currentIndex] || '';
+  const currentLabel = screenshotLabels[currentIndex] || `Tela ${currentIndex + 1}`;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -72,16 +77,29 @@ const ProjectModal = ({ isOpen, onClose, project, screenshots, screenshotLabels,
                 <Loader2 className="w-12 h-12 text-primary animate-spin" />
                 <p className="text-muted-foreground">Carregando screenshots...</p>
               </div>
-            ) : validScreenshots.length > 0 ? (
+            ) : hasAnyValid ? (
               <>
-                <img
-                  src={validScreenshots[currentIndex]}
-                  alt={`${project.title} - ${screenshotLabels[currentIndex] || `Tela ${currentIndex + 1}`}`}
-                  className="max-h-full max-w-full object-contain rounded-lg shadow-2xl"
-                />
+                {currentScreenshot ? (
+                  <img
+                    src={currentScreenshot}
+                    alt={`${project.title} - ${currentLabel}`}
+                    className="max-h-full max-w-full object-contain rounded-lg shadow-2xl"
+                  />
+                ) : (
+                  <div className="flex flex-col items-center gap-4 p-8 bg-muted/50 rounded-xl">
+                    <div className="w-20 h-20 rounded-xl bg-destructive/10 flex items-center justify-center">
+                      <X className="w-10 h-10 text-destructive" />
+                    </div>
+                    <p className="text-muted-foreground text-center">
+                      <span className="font-medium text-foreground">{currentLabel}</span>
+                      <br />
+                      <span className="text-sm">URL inválida ou 404</span>
+                    </p>
+                  </div>
+                )}
                 
                 {/* Navigation Arrows */}
-                {validScreenshots.length > 1 && (
+                {totalScreens > 1 && (
                   <>
                     <Button
                       variant="ghost"
@@ -112,10 +130,10 @@ const ProjectModal = ({ isOpen, onClose, project, screenshots, screenshotLabels,
             )}
           </div>
 
-          {/* Thumbnails */}
-          {validScreenshots.length > 1 && (
+          {/* Thumbnails - always show all 3 positions */}
+          {totalScreens > 1 && hasAnyValid && (
             <div className="flex items-center justify-center gap-3 px-4 pt-4">
-              {validScreenshots.map((screenshot, index) => (
+              {screenshots.map((screenshot, index) => (
                 <button
                   key={index}
                   onClick={() => setCurrentIndex(index)}
@@ -125,21 +143,27 @@ const ProjectModal = ({ isOpen, onClose, project, screenshots, screenshotLabels,
                       : "border-transparent opacity-60 hover:opacity-100"
                   }`}
                 >
-                  <img
-                    src={screenshot}
-                    alt={screenshotLabels[index] || `Tela ${index + 1}`}
-                    className="w-full h-full object-cover object-top"
-                  />
+                  {screenshot ? (
+                    <img
+                      src={screenshot}
+                      alt={screenshotLabels[index] || `Tela ${index + 1}`}
+                      className="w-full h-full object-cover object-top"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-muted flex items-center justify-center">
+                      <X className="w-4 h-4 text-muted-foreground" />
+                    </div>
+                  )}
                 </button>
               ))}
             </div>
           )}
 
           {/* Screen Label */}
-          {validScreenshots.length > 0 && (
+          {hasAnyValid && (
             <div className="text-center mt-3">
               <span className="text-sm text-muted-foreground">
-                {screenshotLabels[currentIndex] || `Tela ${currentIndex + 1}`} ({currentIndex + 1}/{validScreenshots.length})
+                {currentLabel} ({currentIndex + 1}/{totalScreens})
               </span>
             </div>
           )}
