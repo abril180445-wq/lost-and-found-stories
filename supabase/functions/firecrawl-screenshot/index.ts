@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         url: formattedUrl,
         formats: ['screenshot'],
-        waitFor: 3000, // Wait 3s for SPAs to load
+        waitFor: 6000, // Wait 6s for SPAs to load properly
         onlyMainContent: false,
       }),
     });
@@ -70,12 +70,18 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log('Screenshot captured successfully');
+    const metadata = data.data?.metadata || data.metadata || {};
+    const statusCode = metadata.statusCode || 200;
+    const sourceURL = metadata.sourceURL || formattedUrl;
+
+    console.log('Screenshot captured successfully, statusCode:', statusCode);
     return new Response(
       JSON.stringify({ 
         success: true, 
         screenshot,
-        metadata: data.data?.metadata || data.metadata 
+        statusCode,
+        sourceURL,
+        metadata
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import ProjectModal from "./ProjectModal";
 
 interface ProjectScreen {
-  path: string;
+  url: string;
   label: string;
 }
 
@@ -36,9 +36,9 @@ const Projects = () => {
       type: "SaaS",
       url: "https://agendaglas.lovable.app",
       screens: [
-        { path: "", label: "Dashboard" },
-        { path: "/agendamentos", label: "Agendamentos" },
-        { path: "/clientes", label: "Clientes" },
+        { url: "https://agendaglas.lovable.app", label: "Dashboard" },
+        { url: "https://agendaglas.lovable.app/agendamentos", label: "Agendamentos" },
+        { url: "https://agendaglas.lovable.app/clientes", label: "Clientes" },
       ]
     },
     { 
@@ -48,9 +48,9 @@ const Projects = () => {
       type: "Web App",
       url: "https://tefilin-53pv.vercel.app",
       screens: [
-        { path: "", label: "Dashboard" },
-        { path: "/membros", label: "Membros" },
-        { path: "/financeiro", label: "Financeiro" },
+        { url: "https://tefilin-53pv.vercel.app", label: "Dashboard" },
+        { url: "https://tefilin-53pv.vercel.app/membros", label: "Membros" },
+        { url: "https://tefilin-53pv.vercel.app/financeiro", label: "Financeiro" },
       ]
     },
     { 
@@ -60,9 +60,9 @@ const Projects = () => {
       type: "LMS",
       url: "https://seminarioteologico.lovable.app",
       screens: [
-        { path: "", label: "Home" },
-        { path: "/cursos", label: "Cursos" },
-        { path: "/aulas", label: "Aulas" },
+        { url: "https://seminarioteologico.lovable.app", label: "Home" },
+        { url: "https://seminarioteologico.lovable.app/cursos", label: "Cursos" },
+        { url: "https://seminarioteologico.lovable.app/aulas", label: "Aulas" },
       ]
     },
     { 
@@ -72,9 +72,9 @@ const Projects = () => {
       type: "Web App",
       url: "https://bibliatefilin.lovable.app",
       screens: [
-        { path: "", label: "Home" },
-        { path: "/livros", label: "Livros" },
-        { path: "/leitura", label: "Leitura" },
+        { url: "https://bibliatefilin.lovable.app", label: "Home" },
+        { url: "https://bibliatefilin.lovable.app/livros", label: "Livros" },
+        { url: "https://bibliatefilin.lovable.app/leitura", label: "Leitura" },
       ]
     },
     { 
@@ -84,9 +84,9 @@ const Projects = () => {
       type: "SaaS",
       url: "https://visual-kit-manager.lovable.app",
       screens: [
-        { path: "", label: "Dashboard" },
-        { path: "/projetos", label: "Projetos" },
-        { path: "/biblioteca", label: "Biblioteca" },
+        { url: "https://visual-kit-manager.lovable.app", label: "Dashboard" },
+        { url: "https://visual-kit-manager.lovable.app/projetos", label: "Projetos" },
+        { url: "https://visual-kit-manager.lovable.app/biblioteca", label: "Biblioteca" },
       ]
     },
     { 
@@ -96,9 +96,9 @@ const Projects = () => {
       type: "SaaS",
       url: "https://insight-image-suite.lovable.app",
       screens: [
-        { path: "", label: "Editor" },
-        { path: "/projetos", label: "Projetos" },
-        { path: "/galeria", label: "Galeria" },
+        { url: "https://insight-image-suite.lovable.app", label: "Editor" },
+        { url: "https://insight-image-suite.lovable.app/projetos", label: "Projetos" },
+        { url: "https://insight-image-suite.lovable.app/galeria", label: "Galeria" },
       ]
     },
     { 
@@ -108,9 +108,9 @@ const Projects = () => {
       type: "Website",
       url: "https://tatuagen.lovable.app",
       screens: [
-        { path: "", label: "Home" },
-        { path: "/portfolio", label: "Portfólio" },
-        { path: "/artistas", label: "Artistas" },
+        { url: "https://tatuagen.lovable.app", label: "Home" },
+        { url: "https://tatuagen.lovable.app/portfolio", label: "Portfólio" },
+        { url: "https://tatuagen.lovable.app/artistas", label: "Artistas" },
       ]
     },
     { 
@@ -120,9 +120,9 @@ const Projects = () => {
       type: "Website",
       url: "https://rorschachmotion.vercel.app",
       screens: [
-        { path: "", label: "Home" },
-        { path: "/portfolio", label: "Portfólio" },
-        { path: "/servicos", label: "Serviços" },
+        { url: "https://rorschachmotion.vercel.app", label: "Home" },
+        { url: "https://rorschachmotion.vercel.app/portfolio", label: "Portfólio" },
+        { url: "https://rorschachmotion.vercel.app/servicos", label: "Serviços" },
       ]
     },
   ];
@@ -137,9 +137,9 @@ const Projects = () => {
         
         const projectScreenshots: string[] = [];
         
-        // Load each screen
+        // Load each screen using its full URL
         for (const screen of project.screens) {
-          const fullUrl = project.url + screen.path;
+          const fullUrl = screen.url;
           try {
             const { data, error } = await supabase.functions.invoke('firecrawl-screenshot', {
               body: { url: fullUrl }
