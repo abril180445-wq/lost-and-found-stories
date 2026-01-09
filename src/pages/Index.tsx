@@ -13,7 +13,7 @@ const About = lazy(() => import("@/components/mobi/About"));
 const Services = lazy(() => import("@/components/mobi/Services"));
 const Process = lazy(() => import("@/components/mobi/Process"));
 const Technologies = lazy(() => import("@/components/mobi/Technologies"));
-// Projects section removed
+const Projects = lazy(() => import("@/components/mobi/Projects"));
 const Timeline = lazy(() => import("@/components/mobi/Timeline"));
 const FAQ = lazy(() => import("@/components/mobi/FAQ"));
 const Contact = lazy(() => import("@/components/mobi/Contact"));
@@ -55,7 +55,7 @@ const Index = () => {
         <Suspense fallback={<SectionLoader />}><Process /></Suspense>
         <Suspense fallback={<SectionLoader />}><Technologies /></Suspense>
         <Suspense fallback={<SectionLoader />}><Timeline /></Suspense>
-        {/* Projects section removed */}
+        <Suspense fallback={<SectionLoader />}><Projects /></Suspense>
         
         <Suspense fallback={<SectionLoader />}><Team /></Suspense>
         <Suspense fallback={<SectionLoader />}><Testimonials /></Suspense>
