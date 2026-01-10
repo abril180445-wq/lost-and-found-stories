@@ -225,7 +225,7 @@ const Projects = () => {
             return (
               <div
                 key={project.title}
-                className={`group relative bg-card border border-border rounded-xl overflow-hidden transition-all duration-500 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5 ${gridAnimation.isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`} 
+                className={`group relative bg-card border border-border rounded-xl overflow-hidden transition-all duration-500 hover:border-white/20 hover:shadow-xl hover:shadow-black/10 ${gridAnimation.isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`} 
                 style={{ transitionDelay: `${index * 80}ms` }}
               >
                 {/* Main Screenshot Area */}
@@ -260,8 +260,8 @@ const Projects = () => {
                   )}
 
                   {/* Hover Overlay */}
-                  <div className="absolute inset-0 bg-primary/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                    <span className="flex items-center gap-2 text-primary-foreground font-medium">
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                    <span className="flex items-center gap-2 text-white font-medium">
                       <Eye className="w-5 h-5" /> Ver telas
                     </span>
                   </div>
@@ -285,7 +285,7 @@ const Projects = () => {
                             setSelectedProject(project);
                             setModalOpen(true);
                           }}
-                          className="flex-1 aspect-video rounded overflow-hidden border border-border hover:border-primary/50 transition-colors"
+                          className="flex-1 aspect-video rounded overflow-hidden border border-border hover:border-white/30 transition-colors"
                         >
                           {screenshot ? (
                             <img
@@ -307,7 +307,7 @@ const Projects = () => {
                 {/* Info Area */}
                 <div className="p-5 bg-card">
                   <div className="flex items-start justify-between gap-3 mb-2">
-                    <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
+                    <h3 className="text-lg font-semibold text-foreground group-hover:text-white transition-colors">
                       {project.title}
                     </h3>
                     <span className="shrink-0 px-2 py-0.5 bg-muted text-muted-foreground text-xs rounded">
