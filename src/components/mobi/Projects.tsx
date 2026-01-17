@@ -273,36 +273,6 @@ const Projects = () => {
                   </div>
                 </div>
 
-                {/* Thumbnail strip - 3 small previews */}
-                {!loading && hasValidScreenshots && (
-                  <div className="flex gap-1 p-2 bg-muted/50">
-                    {project.screens.map((screen, screenIndex) => {
-                      const screenshot = projectScreenshots[screenIndex];
-                      return (
-                        <button
-                          key={screenIndex}
-                          onClick={() => {
-                            setSelectedProject(project);
-                            setModalOpen(true);
-                          }}
-                          className="flex-1 aspect-video rounded overflow-hidden border border-border hover:border-white/30 transition-colors"
-                        >
-                          {screenshot ? (
-                            <img
-                              src={screenshot}
-                              alt={screen.label}
-                              className="w-full h-full object-cover object-top"
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-muted flex items-center justify-center">
-                              <span className="text-[8px] text-muted-foreground">{screen.label}</span>
-                            </div>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
 
               </div>
             );
