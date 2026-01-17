@@ -304,34 +304,6 @@ const Projects = () => {
                   </div>
                 )}
 
-                {/* Info Area */}
-                <div className="p-5 bg-card">
-                  <div className="flex items-start justify-between gap-3 mb-2">
-                    <h3 className="text-lg font-semibold text-foreground group-hover:text-white transition-colors">
-                      {project.title}
-                    </h3>
-                    <span className="shrink-0 px-2 py-0.5 bg-muted text-muted-foreground text-xs rounded">
-                      {project.type}
-                    </span>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    {project.subtitle}
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs text-muted-foreground/70">
-                      {project.clientOrSegment}
-                    </p>
-                    <a
-                      href={project.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className="text-xs text-primary hover:underline flex items-center gap-1"
-                    >
-                      Acessar <ExternalLink className="w-3 h-3" />
-                    </a>
-                  </div>
-                </div>
               </div>
             );
           })}
