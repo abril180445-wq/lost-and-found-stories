@@ -273,6 +273,20 @@ const Projects = () => {
                   </div>
                 </div>
 
+                {/* Info Area */}
+                <div className="p-5 bg-card">
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <h3 className="text-lg font-semibold text-foreground">
+                      {project.title}
+                    </h3>
+                    <span className="shrink-0 px-2 py-0.5 bg-muted text-muted-foreground text-xs rounded">
+                      {project.type}
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {project.subtitle}
+                  </p>
+                </div>
 
               </div>
             );
