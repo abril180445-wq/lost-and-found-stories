@@ -229,9 +229,11 @@ const Projects = () => {
                 style={{ transitionDelay: `${index * 80}ms` }}
               >
                 {/* Main Screenshot Area */}
-                <div 
-                  className="relative aspect-video bg-muted overflow-hidden cursor-pointer"
-                  onClick={() => openModal(project)}
+                <a 
+                  href={project.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="relative aspect-video bg-muted overflow-hidden cursor-pointer block"
                 >
                   {/* Loading State */}
                   {loading && (
@@ -271,7 +273,7 @@ const Projects = () => {
                     <CheckCircle className="w-3 h-3" />
                     Entregue
                   </div>
-                </div>
+                </a>
 
                 {/* Info Area */}
                 <div className="p-5 bg-card">
