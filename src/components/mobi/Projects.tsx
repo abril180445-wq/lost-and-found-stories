@@ -251,15 +251,6 @@ const Projects = () => {
                     />
                   )}
                   
-                  {/* Fallback */}
-                  {!loading && !mainScreenshot && (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-muted to-muted/80">
-                      <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center">
-                        <span className="text-2xl font-bold text-primary">{project.title.charAt(0)}</span>
-                      </div>
-                      <span className="text-sm font-medium text-foreground">{project.title}</span>
-                    </div>
-                  )}
 
 
                   {/* Badge */}
