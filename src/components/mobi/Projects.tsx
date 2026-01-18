@@ -261,12 +261,6 @@ const Projects = () => {
                     </div>
                   )}
 
-                  {/* Hover Overlay */}
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                    <span className="flex items-center gap-2 text-white font-medium">
-                      <Eye className="w-5 h-5" /> Ver telas
-                    </span>
-                  </div>
 
                   {/* Badge */}
                   <div className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/90 backdrop-blur-sm rounded-full text-white text-xs font-medium">
