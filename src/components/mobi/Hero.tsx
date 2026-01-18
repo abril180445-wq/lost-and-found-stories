@@ -36,22 +36,6 @@ const Hero = () => {
 
       <div className="container-custom relative z-10">
         <div className="max-w-4xl mx-auto text-center">
-          {/* Logo */}
-          <div className="flex items-center justify-center gap-3 mb-8 animate-fade-up">
-            <div className="w-12 h-12 bg-gradient-to-br from-primary to-cyan-400 rounded-xl flex items-center justify-center shadow-glow">
-              <span className="text-primary-foreground font-heading font-bold text-xl">
-                R
-              </span>
-            </div>
-            <div className="flex flex-col items-start">
-              <span className="text-foreground font-heading font-bold text-lg tracking-tight leading-none">
-                RORSCHACH
-              </span>
-              <span className="text-primary font-heading font-semibold text-sm tracking-widest">
-                MOTION
-              </span>
-            </div>
-          </div>
 
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-primary mb-8 animate-fade-up delay-50">
