@@ -11,7 +11,7 @@ const SideNav = () => {
   ];
 
   return (
-    <nav className="fixed left-0 top-1/2 -translate-y-1/2 z-50 hidden lg:flex flex-col items-center py-8 px-4 bg-background/80 backdrop-blur-md border-r border-border/30 rounded-r-2xl">
+    <nav className="fixed left-0 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center py-8 px-4 bg-background/80 backdrop-blur-md border-r border-border/30 rounded-r-2xl">
       {navItems.map((item, index) => (
         <a
           key={index}
