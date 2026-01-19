@@ -6,7 +6,6 @@ import WhatsAppButton from "@/components/mobi/WhatsAppButton";
 import LoadingScreen from "@/components/mobi/LoadingScreen";
 import FloatingElements from "@/components/mobi/FloatingElements";
 import CustomCursor from "@/components/mobi/CustomCursor";
-import SideNav from "@/components/mobi/SideNav";
 import ChatBot from "@/components/mobi/ChatBot";
 
 const Clients = lazy(() => import("@/components/mobi/Clients"));
@@ -47,7 +46,6 @@ const Index = () => {
       </Suspense>
 
       <Header />
-      <SideNav />
 
       <main className="relative z-10">
         <Hero />
