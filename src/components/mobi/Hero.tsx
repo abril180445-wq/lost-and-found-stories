@@ -2,6 +2,15 @@ import { ArrowRight, Sparkles } from "lucide-react";
 import { useCountAnimation } from "@/hooks/useCountAnimation";
 import heroBgVideo from "@/assets/hero-bg.mp4";
 
+const navItems = [
+  { label: "Início", href: "#inicio" },
+  { label: "Sobre", href: "#sobre" },
+  { label: "Serviços", href: "#servicos" },
+  { label: "Projetos", href: "#projetos" },
+  { label: "Blog", href: "#blog" },
+  { label: "Contato", href: "#contato" },
+];
+
 const Hero = () => {
   const yearsCount = useCountAnimation({ end: 8, duration: 2000 });
   const projectsCount = useCountAnimation({ end: 150, duration: 2500 });
@@ -36,6 +45,19 @@ const Hero = () => {
 
       <div className="container-custom relative z-10">
         <div className="max-w-4xl mx-auto text-center">
+
+          {/* Hero Navigation */}
+          <nav className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 mb-10 animate-fade-up">
+            {navItems.map((item, index) => (
+              <a
+                key={index}
+                href={item.href}
+                className="text-muted-foreground hover:text-primary transition-colors duration-300 text-sm font-medium tracking-wide"
+              >
+                {item.label}
+              </a>
+            ))}
+          </nav>
 
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-primary mb-8 animate-fade-up delay-50">
