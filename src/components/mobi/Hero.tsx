@@ -1,4 +1,5 @@
 import { ArrowRight, Sparkles } from "lucide-react";
+import { useState, useEffect } from "react";
 import { useCountAnimation } from "@/hooks/useCountAnimation";
 import heroBgVideo from "@/assets/hero-bg.mp4";
 
@@ -12,9 +13,38 @@ const navItems = [
 ];
 
 const Hero = () => {
+  const [activeSection, setActiveSection] = useState("inicio");
   const yearsCount = useCountAnimation({ end: 8, duration: 2000 });
   const projectsCount = useCountAnimation({ end: 150, duration: 2500 });
   const clientsCount = useCountAnimation({ end: 50, duration: 2200 });
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const sections = navItems.map(item => item.href.replace("#", ""));
+      
+      for (const sectionId of sections.reverse()) {
+        const element = document.getElementById(sectionId);
+        if (element) {
+          const rect = element.getBoundingClientRect();
+          if (rect.top <= 150) {
+            setActiveSection(sectionId);
+            break;
+          }
+        }
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    e.preventDefault();
+    const element = document.querySelector(href);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
+  };
 
   const stats = [
     { value: yearsCount.count, suffix: "+", label: "Anos de Experiência", ref: yearsCount.ref },
@@ -48,15 +78,29 @@ const Hero = () => {
 
           {/* Hero Navigation */}
           <nav className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 mb-10 animate-fade-up">
-            {navItems.map((item, index) => (
-              <a
-                key={index}
-                href={item.href}
-                className="text-muted-foreground hover:text-primary transition-colors duration-300 text-sm font-medium tracking-wide"
-              >
-                {item.label}
-              </a>
-            ))}
+            {navItems.map((item, index) => {
+              const sectionId = item.href.replace("#", "");
+              const isActive = activeSection === sectionId;
+              
+              return (
+                <a
+                  key={index}
+                  href={item.href}
+                  onClick={(e) => handleNavClick(e, item.href)}
+                  className={`relative text-sm font-medium tracking-wide transition-all duration-300 py-1
+                    ${isActive 
+                      ? "text-primary" 
+                      : "text-muted-foreground hover:text-primary"
+                    }
+                    after:content-[''] after:absolute after:w-full after:h-0.5 after:bottom-0 after:left-0 
+                    after:bg-primary after:transition-transform after:duration-300 after:origin-left
+                    ${isActive ? "after:scale-x-100" : "after:scale-x-0 hover:after:scale-x-100"}
+                  `}
+                >
+                  {item.label}
+                </a>
+              );
+            })}
           </nav>
 
           {/* Badge */}
