@@ -27,7 +27,8 @@ import {
   Eye,
   EyeOff,
   Image,
-  Loader2
+  Loader2,
+  Facebook
 } from 'lucide-react';
 
 interface BlogPost {
@@ -53,6 +54,8 @@ const Admin = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [isPublishingToFacebook, setIsPublishingToFacebook] = useState(false);
+  const [autoPublishFacebook, setAutoPublishFacebook] = useState(true);
   const [aiTopic, setAiTopic] = useState('');
 
   const [formData, setFormData] = useState({
@@ -191,6 +194,33 @@ const Admin = () => {
     }
   };
 
+  const publishToFacebook = async (title: string, excerpt: string, slug: string, imageUrl?: string) => {
+    setIsPublishingToFacebook(true);
+    try {
+      const postUrl = `https://lost-and-found-stories.lovable.app/blog/${slug}`;
+      const message = `📢 Novo artigo no blog!\n\n${title}\n\n${excerpt}`;
+
+      const { data, error } = await supabase.functions.invoke('publish-to-facebook', {
+        body: { 
+          message, 
+          link: postUrl,
+          imageUrl: imageUrl || undefined
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.success) {
+        toast.success('✅ Publicado no Facebook!');
+      }
+    } catch (error: any) {
+      console.error('Facebook publish error:', error);
+      toast.error('Erro ao publicar no Facebook: ' + (error.message || 'Tente novamente'));
+    } finally {
+      setIsPublishingToFacebook(false);
+    }
+  };
+
   const handleSave = async () => {
     if (!formData.title.trim() || !formData.slug.trim()) {
       toast.error('Título e slug são obrigatórios');
@@ -213,6 +243,16 @@ const Admin = () => {
 
         if (error) throw error;
         toast.success('Post criado!');
+
+        // Auto publish to Facebook if enabled and post is published
+        if (autoPublishFacebook && formData.published) {
+          await publishToFacebook(
+            formData.title, 
+            formData.excerpt || 'Confira nosso novo artigo!', 
+            formData.slug,
+            formData.image_url || undefined
+          );
+        }
       }
 
       resetForm();
@@ -552,9 +592,31 @@ const Admin = () => {
                 </Label>
               </div>
 
+              {/* Facebook Auto-Publish Toggle */}
+              {!editingPost && formData.published && (
+                <div className="flex items-center gap-3 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                  <Switch
+                    id="autoPublishFacebook"
+                    checked={autoPublishFacebook}
+                    onCheckedChange={setAutoPublishFacebook}
+                  />
+                  <Label htmlFor="autoPublishFacebook" className="flex items-center gap-2">
+                    <Facebook className="w-4 h-4 text-blue-500" />
+                    <span>Publicar automaticamente no Facebook</span>
+                  </Label>
+                  {isPublishingToFacebook && (
+                    <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
+                  )}
+                </div>
+              )}
+
               <div className="flex gap-4 pt-4">
-                <Button onClick={handleSave}>
-                  <Save className="w-4 h-4 mr-2" />
+                <Button onClick={handleSave} disabled={isPublishingToFacebook}>
+                  {isPublishingToFacebook ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Save className="w-4 h-4 mr-2" />
+                  )}
                   {editingPost ? 'Atualizar Post' : 'Criar Post'}
                 </Button>
                 <Button variant="outline" onClick={resetForm}>
