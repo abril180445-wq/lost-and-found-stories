@@ -44,7 +44,8 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         url: formattedUrl,
         formats: ['screenshot'],
-        waitFor: 6000, // Wait 6s for SPAs to load properly
+        waitFor: 10000, // Wait 10s for SPAs to load properly
+        timeout: 60000, // 60s overall timeout for slow sites
         onlyMainContent: false,
       }),
     });
