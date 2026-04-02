@@ -638,7 +638,9 @@ const Admin = () => {
                     <>
                       <EyeOff className="w-4 h-4" /> Rascunho
                     </>
-              )}
+                  )}
+                </Label>
+              </div>
 
               {/* Zapier Integration */}
               <div className="p-4 bg-orange-500/10 border border-orange-500/20 rounded-lg space-y-3">
