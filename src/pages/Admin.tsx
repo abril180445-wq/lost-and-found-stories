@@ -56,6 +56,9 @@ const Admin = () => {
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [isPublishingToFacebook, setIsPublishingToFacebook] = useState(false);
   const [autoPublishFacebook, setAutoPublishFacebook] = useState(true);
+  const [zapierWebhookUrl, setZapierWebhookUrl] = useState(() => localStorage.getItem('zapier_webhook_url') || '');
+  const [autoTriggerZapier, setAutoTriggerZapier] = useState(() => localStorage.getItem('zapier_auto_trigger') === 'true');
+  const [isTriggeringZapier, setIsTriggeringZapier] = useState(false);
   const [aiTopic, setAiTopic] = useState('');
 
   const [formData, setFormData] = useState({
@@ -253,6 +256,18 @@ const Admin = () => {
             formData.image_url || undefined
           );
         }
+
+        // Auto trigger Zapier webhook if enabled
+        if (autoTriggerZapier && zapierWebhookUrl.trim()) {
+          await triggerZapierWebhook({
+            title: formData.title,
+            excerpt: formData.excerpt || 'Confira nosso novo artigo!',
+            slug: formData.slug,
+            category: formData.category,
+            image_url: formData.image_url || undefined,
+            published: formData.published,
+          });
+        }
       }
 
       resetForm();
@@ -314,6 +329,41 @@ const Admin = () => {
     setEditingPost(null);
     setIsCreating(false);
     setAiTopic('');
+  };
+
+  const saveZapierConfig = (url: string, autoTrigger: boolean) => {
+    localStorage.setItem('zapier_webhook_url', url);
+    localStorage.setItem('zapier_auto_trigger', String(autoTrigger));
+  };
+
+  const triggerZapierWebhook = async (postData: { title: string; excerpt: string; slug: string; category: string; image_url?: string; published: boolean }) => {
+    if (!zapierWebhookUrl.trim()) return;
+    
+    setIsTriggeringZapier(true);
+    try {
+      const postUrl = `https://lost-and-found-stories.lovable.app/blog/${postData.slug}`;
+      await fetch(zapierWebhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        mode: 'no-cors',
+        body: JSON.stringify({
+          title: postData.title,
+          excerpt: postData.excerpt,
+          url: postUrl,
+          category: postData.category,
+          image_url: postData.image_url,
+          published: postData.published,
+          timestamp: new Date().toISOString(),
+          triggered_from: window.location.origin,
+        }),
+      });
+      toast.success('✅ Webhook Zapier disparado!');
+    } catch (error) {
+      console.error('Zapier webhook error:', error);
+      toast.error('Erro ao disparar webhook do Zapier');
+    } finally {
+      setIsTriggeringZapier(false);
+    }
   };
 
   const handleLogout = async () => {
@@ -590,6 +640,44 @@ const Admin = () => {
                     </>
                   )}
                 </Label>
+              </div>
+
+              {/* Zapier Integration */}
+              <div className="p-4 bg-orange-500/10 border border-orange-500/20 rounded-lg space-y-3">
+                <div className="flex items-center gap-3">
+                  <Switch
+                    id="autoTriggerZapier"
+                    checked={autoTriggerZapier}
+                    onCheckedChange={(checked) => {
+                      setAutoTriggerZapier(checked);
+                      saveZapierConfig(zapierWebhookUrl, checked);
+                    }}
+                  />
+                  <Label htmlFor="autoTriggerZapier" className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-orange-500" />
+                    <span>Integração com Zapier</span>
+                  </Label>
+                  {isTriggeringZapier && (
+                    <Loader2 className="w-4 h-4 animate-spin text-orange-500" />
+                  )}
+                </div>
+                {autoTriggerZapier && (
+                  <div className="space-y-2">
+                    <Input
+                      placeholder="Cole aqui a URL do seu Webhook Zapier (ex: https://hooks.zapier.com/...)"
+                      value={zapierWebhookUrl}
+                      onChange={(e) => {
+                        setZapierWebhookUrl(e.target.value);
+                        saveZapierConfig(e.target.value, autoTriggerZapier);
+                      }}
+                      className="text-sm"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Ao criar um post, os dados serão enviados para o Zapier automaticamente. 
+                      Configure ações como postar no Instagram, enviar email, atualizar planilhas, etc.
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Facebook Auto-Publish Toggle */}
