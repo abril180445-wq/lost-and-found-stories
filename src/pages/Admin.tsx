@@ -56,6 +56,9 @@ const Admin = () => {
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [isPublishingToFacebook, setIsPublishingToFacebook] = useState(false);
   const [autoPublishFacebook, setAutoPublishFacebook] = useState(true);
+  const [zapierWebhookUrl, setZapierWebhookUrl] = useState(() => localStorage.getItem('zapier_webhook_url') || '');
+  const [autoTriggerZapier, setAutoTriggerZapier] = useState(() => localStorage.getItem('zapier_auto_trigger') === 'true');
+  const [isTriggeringZapier, setIsTriggeringZapier] = useState(false);
   const [aiTopic, setAiTopic] = useState('');
 
   const [formData, setFormData] = useState({
