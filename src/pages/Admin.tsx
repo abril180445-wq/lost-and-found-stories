@@ -676,7 +676,6 @@ const Admin = () => {
                     </p>
                   </div>
                 )}
-                </Label>
               </div>
 
               {/* Facebook Auto-Publish Toggle */}
