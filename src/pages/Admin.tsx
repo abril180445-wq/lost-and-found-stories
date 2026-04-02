@@ -256,6 +256,18 @@ const Admin = () => {
             formData.image_url || undefined
           );
         }
+
+        // Auto trigger Zapier webhook if enabled
+        if (autoTriggerZapier && zapierWebhookUrl.trim()) {
+          await triggerZapierWebhook({
+            title: formData.title,
+            excerpt: formData.excerpt || 'Confira nosso novo artigo!',
+            slug: formData.slug,
+            category: formData.category,
+            image_url: formData.image_url || undefined,
+            published: formData.published,
+          });
+        }
       }
 
       resetForm();
