@@ -40,28 +40,15 @@ serve(async (req) => {
 
     console.log('Publishing to Facebook:', { message: message.substring(0, 50) + '...', link, hasImage: !!imageUrl });
 
-    let endpoint: string;
-    let body: URLSearchParams;
+    // Always use /feed endpoint - /photos requires additional permissions
+    const endpoint = `https://graph.facebook.com/v19.0/${FACEBOOK_PAGE_ID}/feed`;
+    const body = new URLSearchParams({
+      message: imageUrl ? `${message}\n\n🔗 ${link || ''}`.trim() : message,
+      access_token: FACEBOOK_ACCESS_TOKEN,
+    });
 
-    if (imageUrl) {
-      // Post with image
-      endpoint = `https://graph.facebook.com/v19.0/${FACEBOOK_PAGE_ID}/photos`;
-      body = new URLSearchParams({
-        url: imageUrl,
-        caption: link ? `${message}\n\n🔗 ${link}` : message,
-        access_token: FACEBOOK_ACCESS_TOKEN,
-      });
-    } else {
-      // Post with or without link
-      endpoint = `https://graph.facebook.com/v19.0/${FACEBOOK_PAGE_ID}/feed`;
-      body = new URLSearchParams({
-        message: message,
-        access_token: FACEBOOK_ACCESS_TOKEN,
-      });
-      
-      if (link) {
-        body.append('link', link);
-      }
+    if (link) {
+      body.append('link', link);
     }
 
     const response = await fetch(endpoint, {
