@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense, memo } from "react";
+import { useState, lazy, Suspense, memo, useEffect } from "react";
 import Header from "@/components/mobi/Header";
 import Hero from "@/components/mobi/Hero";
 import Footer from "@/components/mobi/Footer";
@@ -20,17 +20,41 @@ const Contact = lazy(() => import("@/components/mobi/Contact"));
 const ScrollProgress = lazy(() => import("@/components/mobi/ScrollProgress"));
 const Team = lazy(() => import("@/components/mobi/Team"));
 const Testimonials = lazy(() => import("@/components/mobi/Testimonials"));
-
 const Blog = lazy(() => import("@/components/mobi/Blog"));
 
 const SectionLoader = memo(() => (
-  <div className="w-full py-20 flex justify-center">
+  <div className="w-full py-20 flex justify-center" role="status" aria-label="Carregando seção">
     <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
   </div>
 ));
 
 const Index = () => {
   const [isLoading, setIsLoading] = useState(true);
+
+  // JSON-LD structured data for SEO
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.textContent = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Rorschach Motion",
+      "url": "https://rorschachmotion.com",
+      "description": "Há mais de 8 anos desenvolvendo sistemas web, aplicativos mobile e soluções tecnológicas que impulsionam negócios.",
+      "foundingDate": "2016",
+      "sameAs": [],
+      "address": {
+        "@type": "PostalAddress",
+        "addressCountry": "BR"
+      },
+      "offers": {
+        "@type": "AggregateOffer",
+        "description": "Desenvolvimento Web, Aplicações Mobile, APIs e Integrações, DevOps e Cloud"
+      }
+    });
+    document.head.appendChild(script);
+    return () => { document.head.removeChild(script); };
+  }, []);
 
   if (isLoading) {
     return <LoadingScreen onLoadingComplete={() => setIsLoading(false)} />;
@@ -56,7 +80,6 @@ const Index = () => {
         <Suspense fallback={<SectionLoader />}><Technologies /></Suspense>
         <Suspense fallback={<SectionLoader />}><Timeline /></Suspense>
         <Suspense fallback={<SectionLoader />}><Projects /></Suspense>
-        
         <Suspense fallback={<SectionLoader />}><Team /></Suspense>
         <Suspense fallback={<SectionLoader />}><Testimonials /></Suspense>
         <Suspense fallback={<SectionLoader />}><FAQ /></Suspense>

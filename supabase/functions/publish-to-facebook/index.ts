@@ -1,18 +1,18 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface PublishRequest {
-  message: string;
-  link?: string;
-  imageUrl?: string;
-}
+const PublishSchema = z.object({
+  message: z.string().min(1, 'Message is required').max(5000),
+  link: z.string().url().optional(),
+  imageUrl: z.string().url().optional(),
+});
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
@@ -24,23 +24,30 @@ serve(async (req) => {
     if (!FACEBOOK_PAGE_ID || !FACEBOOK_ACCESS_TOKEN) {
       console.error('Missing Facebook credentials');
       return new Response(
-        JSON.stringify({ error: 'Facebook credentials not configured' }),
+        JSON.stringify({ success: false, error: 'Facebook credentials not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const { message, link, imageUrl }: PublishRequest = await req.json();
-
-    if (!message) {
+    const rawBody = await req.json();
+    const parsed = PublishSchema.safeParse(rawBody);
+    
+    if (!parsed.success) {
       return new Response(
-        JSON.stringify({ error: 'Message is required' }),
+        JSON.stringify({ success: false, error: 'Dados inválidos', details: parsed.error.flatten().fieldErrors }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('Publishing to Facebook:', { message: message.substring(0, 50) + '...', link, hasImage: !!imageUrl });
+    const { message, link, imageUrl } = parsed.data;
 
-    // Always use /feed endpoint - /photos requires additional permissions
+    console.log('Publishing to Facebook:', { 
+      messagePreview: message.substring(0, 50) + '...', 
+      link, 
+      hasImage: !!imageUrl,
+      pageId: FACEBOOK_PAGE_ID 
+    });
+
     const endpoint = `https://graph.facebook.com/v19.0/${FACEBOOK_PAGE_ID}/feed`;
     const body = new URLSearchParams({
       message: imageUrl ? `${message}\n\n🔗 ${link || ''}`.trim() : message,
@@ -59,11 +66,21 @@ serve(async (req) => {
     const result = await response.json();
 
     if (!response.ok) {
-      console.error('Facebook API error:', result);
+      console.error('Facebook API error:', JSON.stringify(result));
+      
+      const errorCode = result.error?.code;
+      const errorMessage = result.error?.message || 'Unknown error';
+      
+      let userMessage = errorMessage;
+      if (errorCode === 190) userMessage = 'Token expirado. Gere um novo token de acesso.';
+      else if (errorCode === 200) userMessage = 'Permissões insuficientes. Verifique as permissões da página.';
+      else if (errorCode === 100) userMessage = 'Parâmetro inválido. Verifique o ID da página.';
+      
       return new Response(
         JSON.stringify({ 
-          error: 'Failed to publish to Facebook', 
-          details: result.error?.message || 'Unknown error' 
+          success: false, 
+          error: userMessage,
+          errorCode,
         }),
         { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -84,7 +101,7 @@ serve(async (req) => {
     console.error('Error in publish-to-facebook function:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
-      JSON.stringify({ error: 'Internal server error', details: errorMessage }),
+      JSON.stringify({ success: false, error: 'Internal server error', details: errorMessage }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdmin } from '@/hooks/useAdmin';
 import { supabase } from '@/integrations/supabase/client';
@@ -28,7 +28,12 @@ import {
   EyeOff,
   Image,
   Loader2,
-  Facebook
+  Facebook,
+  Search,
+  RefreshCw,
+  AlertCircle,
+  CheckCircle2,
+  Clock
 } from 'lucide-react';
 
 interface BlogPost {
@@ -45,6 +50,13 @@ interface BlogPost {
   updated_at: string;
 }
 
+type IntegrationLog = {
+  service: string;
+  status: 'success' | 'error' | 'pending';
+  message: string;
+  timestamp: Date;
+};
+
 const Admin = () => {
   const navigate = useNavigate();
   const { user, isAdmin, isLoading, signOut } = useAdmin();
@@ -60,6 +72,9 @@ const Admin = () => {
   const [autoTriggerZapier, setAutoTriggerZapier] = useState(() => localStorage.getItem('zapier_auto_trigger') === 'true');
   const [isTriggeringZapier, setIsTriggeringZapier] = useState(false);
   const [aiTopic, setAiTopic] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [integrationLogs, setIntegrationLogs] = useState<IntegrationLog[]>([]);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -83,10 +98,12 @@ const Admin = () => {
   }, [user, isAdmin, isLoading, navigate, signOut]);
 
   useEffect(() => {
-    if (isAdmin) {
-      fetchPosts();
-    }
+    if (isAdmin) fetchPosts();
   }, [isAdmin]);
+
+  const addLog = useCallback((service: string, status: IntegrationLog['status'], message: string) => {
+    setIntegrationLogs(prev => [{ service, status, message, timestamp: new Date() }, ...prev.slice(0, 9)]);
+  }, []);
 
   const fetchPosts = async () => {
     try {
@@ -94,7 +111,6 @@ const Admin = () => {
         .from('blog_posts')
         .select('*')
         .order('created_at', { ascending: false });
-
       if (error) throw error;
       setPosts(data || []);
     } catch (error) {
@@ -119,42 +135,26 @@ const Admin = () => {
       toast.error('Digite um tópico para gerar conteúdo');
       return;
     }
-
     setIsGenerating(true);
     try {
       const { data, error } = await supabase.functions.invoke('generate-blog-content', {
         body: { topic: aiTopic, type }
       });
-
       if (error) throw error;
 
       if (type === 'full') {
-        // Extract title from markdown (first # heading)
         const titleMatch = data.content.match(/^#\s+(.+)$/m);
         const title = titleMatch ? titleMatch[1] : aiTopic;
-        
-        setFormData(prev => ({
-          ...prev,
-          title,
-          slug: generateSlug(title),
-          content: data.content
-        }));
+        setFormData(prev => ({ ...prev, title, slug: generateSlug(title), content: data.content }));
         toast.success('Artigo completo gerado!');
       } else if (type === 'title') {
         const titles = data.content.split('\n').filter((t: string) => t.trim());
         if (titles.length > 0) {
-          setFormData(prev => ({
-            ...prev,
-            title: titles[0].replace(/^\d+\.\s*/, ''),
-            slug: generateSlug(titles[0])
-          }));
+          setFormData(prev => ({ ...prev, title: titles[0].replace(/^\d+\.\s*/, ''), slug: generateSlug(titles[0]) }));
           toast.success('Título gerado! Sugestões: ' + titles.join(' | '));
         }
       } else if (type === 'excerpt') {
-        setFormData(prev => ({
-          ...prev,
-          excerpt: data.content
-        }));
+        setFormData(prev => ({ ...prev, excerpt: data.content }));
         toast.success('Resumo gerado!');
       }
     } catch (error: any) {
@@ -170,23 +170,14 @@ const Admin = () => {
       toast.error('Digite um tópico ou título para gerar a imagem');
       return;
     }
-
     const topic = aiTopic.trim() || formData.title;
     const slug = formData.slug || generateSlug(topic);
-
     setIsGeneratingImage(true);
     try {
-      const { data, error } = await supabase.functions.invoke('generate-blog-image', {
-        body: { topic, slug }
-      });
-
+      const { data, error } = await supabase.functions.invoke('generate-blog-image', { body: { topic, slug } });
       if (error) throw error;
-
       if (data.imageUrl) {
-        setFormData(prev => ({
-          ...prev,
-          image_url: data.imageUrl
-        }));
+        setFormData(prev => ({ ...prev, image_url: data.imageUrl }));
         toast.success('Imagem gerada com sucesso!');
       }
     } catch (error: any) {
@@ -197,76 +188,118 @@ const Admin = () => {
     }
   };
 
-  const publishToFacebook = async (title: string, excerpt: string, slug: string, imageUrl?: string) => {
+  const publishToFacebook = async (title: string, excerpt: string, slug: string, imageUrl?: string, retryCount = 0): Promise<boolean> => {
     setIsPublishingToFacebook(true);
+    addLog('Facebook', 'pending', 'Publicando...');
     try {
       const postUrl = `https://lost-and-found-stories.lovable.app/blog/${slug}`;
       const message = `📢 Novo artigo no blog!\n\n${title}\n\n${excerpt}`;
-
       const { data, error } = await supabase.functions.invoke('publish-to-facebook', {
-        body: { 
-          message, 
-          link: postUrl,
-          imageUrl: imageUrl || undefined
-        }
+        body: { message, link: postUrl, imageUrl: imageUrl || undefined }
       });
-
       if (error) throw error;
-
       if (data.success) {
+        addLog('Facebook', 'success', `Publicado! Post ID: ${data.postId}`);
         toast.success('✅ Publicado no Facebook!');
+        return true;
       }
+      throw new Error(data.error || 'Falha desconhecida');
     } catch (error: any) {
       console.error('Facebook publish error:', error);
+      if (retryCount < 2) {
+        addLog('Facebook', 'pending', `Tentativa ${retryCount + 2}...`);
+        await new Promise(r => setTimeout(r, 2000));
+        return publishToFacebook(title, excerpt, slug, imageUrl, retryCount + 1);
+      }
+      addLog('Facebook', 'error', error.message || 'Falha após 3 tentativas');
       toast.error('Erro ao publicar no Facebook: ' + (error.message || 'Tente novamente'));
+      return false;
     } finally {
       setIsPublishingToFacebook(false);
     }
   };
 
+  const triggerZapierWebhook = async (postData: { title: string; excerpt: string; slug: string; category: string; image_url?: string; published: boolean }, retryCount = 0): Promise<boolean> => {
+    if (!zapierWebhookUrl.trim()) return false;
+    setIsTriggeringZapier(true);
+    addLog('Zapier', 'pending', 'Disparando webhook...');
+    try {
+      const postUrl = `https://lost-and-found-stories.lovable.app/blog/${postData.slug}`;
+      await fetch(zapierWebhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        mode: 'no-cors',
+        body: JSON.stringify({
+          title: postData.title,
+          excerpt: postData.excerpt,
+          url: postUrl,
+          category: postData.category,
+          image_url: postData.image_url,
+          published: postData.published,
+          timestamp: new Date().toISOString(),
+          triggered_from: window.location.origin,
+        }),
+      });
+      addLog('Zapier', 'success', 'Webhook disparado com sucesso');
+      toast.success('✅ Webhook Zapier disparado!');
+      return true;
+    } catch (error: any) {
+      console.error('Zapier webhook error:', error);
+      if (retryCount < 2) {
+        addLog('Zapier', 'pending', `Tentativa ${retryCount + 2}...`);
+        await new Promise(r => setTimeout(r, 2000));
+        return triggerZapierWebhook(postData, retryCount + 1);
+      }
+      addLog('Zapier', 'error', 'Falha após 3 tentativas');
+      toast.error('Erro ao disparar webhook do Zapier');
+      return false;
+    } finally {
+      setIsTriggeringZapier(false);
+    }
+  };
+
   const handleSave = async () => {
-    if (!formData.title.trim() || !formData.slug.trim()) {
-      toast.error('Título e slug são obrigatórios');
+    if (!formData.title.trim()) {
+      toast.error('Título é obrigatório');
+      return;
+    }
+    if (!formData.slug.trim()) {
+      toast.error('Slug é obrigatório');
+      return;
+    }
+    if (!formData.content?.trim()) {
+      toast.error('Conteúdo é obrigatório');
       return;
     }
 
+    setIsSaving(true);
+    setIntegrationLogs([]);
+    
     try {
       if (editingPost) {
-        const { error } = await supabase
-          .from('blog_posts')
-          .update(formData)
-          .eq('id', editingPost.id);
-
+        const { error } = await supabase.from('blog_posts').update(formData).eq('id', editingPost.id);
         if (error) throw error;
         toast.success('Post atualizado!');
-      } else {
-        const { error } = await supabase
-          .from('blog_posts')
-          .insert([formData]);
 
+        // Trigger integrations on edit if published
+        if (formData.published) {
+          if (autoPublishFacebook) {
+            await publishToFacebook(formData.title, formData.excerpt || 'Confira nosso artigo atualizado!', formData.slug, formData.image_url || undefined);
+          }
+          if (autoTriggerZapier && zapierWebhookUrl.trim()) {
+            await triggerZapierWebhook({ title: formData.title, excerpt: formData.excerpt || '', slug: formData.slug, category: formData.category, image_url: formData.image_url || undefined, published: formData.published });
+          }
+        }
+      } else {
+        const { error } = await supabase.from('blog_posts').insert([formData]);
         if (error) throw error;
         toast.success('Post criado!');
 
-        // Auto publish to Facebook if enabled and post is published
         if (autoPublishFacebook && formData.published) {
-          await publishToFacebook(
-            formData.title, 
-            formData.excerpt || 'Confira nosso novo artigo!', 
-            formData.slug,
-            formData.image_url || undefined
-          );
+          await publishToFacebook(formData.title, formData.excerpt || 'Confira nosso novo artigo!', formData.slug, formData.image_url || undefined);
         }
-
-        // Auto trigger Zapier webhook if enabled
         if (autoTriggerZapier && zapierWebhookUrl.trim()) {
-          await triggerZapierWebhook({
-            title: formData.title,
-            excerpt: formData.excerpt || 'Confira nosso novo artigo!',
-            slug: formData.slug,
-            category: formData.category,
-            image_url: formData.image_url || undefined,
-            published: formData.published,
-          });
+          await triggerZapierWebhook({ title: formData.title, excerpt: formData.excerpt || '', slug: formData.slug, category: formData.category, image_url: formData.image_url || undefined, published: formData.published });
         }
       }
 
@@ -279,18 +312,15 @@ const Admin = () => {
       } else {
         toast.error('Erro ao salvar post');
       }
+    } finally {
+      setIsSaving(false);
     }
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm('Tem certeza que deseja excluir este post?')) return;
-
     try {
-      const { error } = await supabase
-        .from('blog_posts')
-        .delete()
-        .eq('id', id);
-
+      const { error } = await supabase.from('blog_posts').delete().eq('id', id);
       if (error) throw error;
       toast.success('Post excluído!');
       fetchPosts();
@@ -313,22 +343,15 @@ const Admin = () => {
       published: post.published || false
     });
     setIsCreating(true);
+    setIntegrationLogs([]);
   };
 
   const resetForm = () => {
-    setFormData({
-      title: '',
-      slug: '',
-      excerpt: '',
-      content: '',
-      image_url: '',
-      category: 'Motion Design',
-      author: 'Rorschach Motion',
-      published: true
-    });
+    setFormData({ title: '', slug: '', excerpt: '', content: '', image_url: '', category: 'Motion Design', author: 'Rorschach Motion', published: true });
     setEditingPost(null);
     setIsCreating(false);
     setAiTopic('');
+    setIntegrationLogs([]);
   };
 
   const saveZapierConfig = (url: string, autoTrigger: boolean) => {
@@ -336,40 +359,19 @@ const Admin = () => {
     localStorage.setItem('zapier_auto_trigger', String(autoTrigger));
   };
 
-  const triggerZapierWebhook = async (postData: { title: string; excerpt: string; slug: string; category: string; image_url?: string; published: boolean }) => {
-    if (!zapierWebhookUrl.trim()) return;
-    
-    setIsTriggeringZapier(true);
-    try {
-      const postUrl = `https://lost-and-found-stories.lovable.app/blog/${postData.slug}`;
-      await fetch(zapierWebhookUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        mode: 'no-cors',
-        body: JSON.stringify({
-          title: postData.title,
-          excerpt: postData.excerpt,
-          url: postUrl,
-          category: postData.category,
-          image_url: postData.image_url,
-          published: postData.published,
-          timestamp: new Date().toISOString(),
-          triggered_from: window.location.origin,
-        }),
-      });
-      toast.success('✅ Webhook Zapier disparado!');
-    } catch (error) {
-      console.error('Zapier webhook error:', error);
-      toast.error('Erro ao disparar webhook do Zapier');
-    } finally {
-      setIsTriggeringZapier(false);
-    }
-  };
-
   const handleLogout = async () => {
     await signOut();
     navigate('/admin/login');
   };
+
+  const filteredPosts = posts.filter(post =>
+    post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    post.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    post.author?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const publishedCount = posts.filter(p => p.published).length;
+  const draftCount = posts.filter(p => !p.published).length;
 
   if (isLoading) {
     return (
@@ -386,14 +388,14 @@ const Admin = () => {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <h1 className="text-xl font-bold text-foreground">Admin Panel</h1>
-            <span className="text-sm text-muted-foreground">{user?.email}</span>
+            <span className="text-sm text-muted-foreground hidden sm:block">{user?.email}</span>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" onClick={() => navigate('/')}>
-              <ArrowLeft className="w-4 h-4 mr-2" /> Site
+            <Button variant="ghost" size="sm" onClick={() => navigate('/')}>
+              <ArrowLeft className="w-4 h-4 mr-1" /> Site
             </Button>
-            <Button variant="outline" onClick={handleLogout}>
-              <LogOut className="w-4 h-4 mr-2" /> Sair
+            <Button variant="outline" size="sm" onClick={handleLogout}>
+              <LogOut className="w-4 h-4 mr-1" /> Sair
             </Button>
           </div>
         </div>
@@ -402,54 +404,88 @@ const Admin = () => {
       <main className="container mx-auto px-4 py-8">
         {!isCreating ? (
           <>
-            {/* Posts List */}
-            <div className="flex items-center justify-between mb-8">
+            {/* Stats */}
+            <div className="grid grid-cols-3 gap-4 mb-8">
+              <div className="bg-card border border-border rounded-lg p-4 text-center">
+                <p className="text-2xl font-bold text-foreground">{posts.length}</p>
+                <p className="text-xs text-muted-foreground">Total</p>
+              </div>
+              <div className="bg-card border border-border rounded-lg p-4 text-center">
+                <p className="text-2xl font-bold text-green-500">{publishedCount}</p>
+                <p className="text-xs text-muted-foreground">Publicados</p>
+              </div>
+              <div className="bg-card border border-border rounded-lg p-4 text-center">
+                <p className="text-2xl font-bold text-yellow-500">{draftCount}</p>
+                <p className="text-xs text-muted-foreground">Rascunhos</p>
+              </div>
+            </div>
+
+            {/* Header & Search */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
               <h2 className="text-2xl font-bold">Posts do Blog</h2>
-              <Button onClick={() => setIsCreating(true)}>
-                <Plus className="w-4 h-4 mr-2" /> Novo Post
-              </Button>
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <div className="relative flex-1 sm:flex-initial">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar posts..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-9 w-full sm:w-64"
+                  />
+                </div>
+                <Button size="icon" variant="outline" onClick={fetchPosts} title="Recarregar">
+                  <RefreshCw className="w-4 h-4" />
+                </Button>
+                <Button onClick={() => setIsCreating(true)}>
+                  <Plus className="w-4 h-4 mr-1" /> Novo
+                </Button>
+              </div>
             </div>
 
             {isLoadingPosts ? (
               <div className="text-center py-12 text-muted-foreground">Carregando...</div>
-            ) : posts.length === 0 ? (
+            ) : filteredPosts.length === 0 ? (
               <div className="text-center py-12">
                 <FileText className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground mb-4">Nenhum post encontrado</p>
-                <Button onClick={() => setIsCreating(true)}>
-                  <Plus className="w-4 h-4 mr-2" /> Criar primeiro post
-                </Button>
+                <p className="text-muted-foreground mb-4">
+                  {searchQuery ? 'Nenhum post encontrado para esta busca' : 'Nenhum post encontrado'}
+                </p>
+                {!searchQuery && (
+                  <Button onClick={() => setIsCreating(true)}>
+                    <Plus className="w-4 h-4 mr-2" /> Criar primeiro post
+                  </Button>
+                )}
               </div>
             ) : (
-              <div className="grid gap-4">
-                {posts.map(post => (
+              <div className="grid gap-3">
+                {filteredPosts.map(post => (
                   <div 
                     key={post.id} 
-                    className="bg-card border border-border rounded-lg p-4 flex items-center justify-between"
+                    className="bg-card border border-border rounded-lg p-4 flex items-center justify-between hover:border-primary/30 transition-colors"
                   >
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="font-semibold text-foreground truncate">{post.title}</h3>
                         {post.published ? (
-                          <span className="text-xs bg-green-500/20 text-green-500 px-2 py-0.5 rounded">
-                            Publicado
+                          <span className="text-xs bg-green-500/20 text-green-500 px-2 py-0.5 rounded flex items-center gap-1 flex-shrink-0">
+                            <CheckCircle2 className="w-3 h-3" /> Publicado
                           </span>
                         ) : (
-                          <span className="text-xs bg-yellow-500/20 text-yellow-500 px-2 py-0.5 rounded">
-                            Rascunho
+                          <span className="text-xs bg-yellow-500/20 text-yellow-500 px-2 py-0.5 rounded flex items-center gap-1 flex-shrink-0">
+                            <Clock className="w-3 h-3" /> Rascunho
                           </span>
                         )}
                       </div>
                       <p className="text-sm text-muted-foreground truncate">{post.excerpt}</p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        {post.category} • {new Date(post.created_at).toLocaleDateString('pt-BR')}
+                        {post.category} • {post.author} • {new Date(post.created_at).toLocaleDateString('pt-BR')}
                       </p>
                     </div>
-                    <div className="flex items-center gap-2 ml-4">
-                      <Button variant="ghost" size="icon" onClick={() => handleEdit(post)}>
+                    <div className="flex items-center gap-1 ml-4">
+                      <Button variant="ghost" size="icon" onClick={() => handleEdit(post)} title="Editar">
                         <Edit className="w-4 h-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(post.id)}>
+                      <Button variant="ghost" size="icon" onClick={() => handleDelete(post.id)} title="Excluir">
                         <Trash2 className="w-4 h-4 text-destructive" />
                       </Button>
                     </div>
@@ -471,7 +507,7 @@ const Admin = () => {
             </div>
 
             {/* AI Generation Section */}
-            <div className="bg-primary/5 border border-primary/20 rounded-lg p-6 mb-8">
+            <div className="bg-card border border-border rounded-lg p-6 mb-8">
               <div className="flex items-center gap-2 mb-4">
                 <Sparkles className="w-5 h-5 text-primary" />
                 <h3 className="font-semibold text-foreground">Gerar com IA</h3>
@@ -485,52 +521,26 @@ const Admin = () => {
                 />
               </div>
               <div className="flex gap-2 flex-wrap">
-                <Button 
-                  variant="secondary" 
-                  onClick={() => generateWithAI('title')}
-                  disabled={isGenerating}
-                >
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  Gerar Título
+                <Button variant="secondary" onClick={() => generateWithAI('title')} disabled={isGenerating}>
+                  <Sparkles className="w-4 h-4 mr-2" /> Gerar Título
                 </Button>
-                <Button 
-                  variant="secondary" 
-                  onClick={() => generateWithAI('excerpt')}
-                  disabled={isGenerating}
-                >
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  Gerar Resumo
+                <Button variant="secondary" onClick={() => generateWithAI('excerpt')} disabled={isGenerating}>
+                  <Sparkles className="w-4 h-4 mr-2" /> Gerar Resumo
                 </Button>
-                <Button 
-                  onClick={() => generateWithAI('full')}
-                  disabled={isGenerating}
-                >
+                <Button onClick={() => generateWithAI('full')} disabled={isGenerating}>
                   <Sparkles className="w-4 h-4 mr-2" />
                   {isGenerating ? 'Gerando...' : 'Gerar Artigo Completo'}
                 </Button>
-                <Button 
-                  variant="outline"
-                  onClick={generateImage}
-                  disabled={isGeneratingImage}
-                >
-                  {isGeneratingImage ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  ) : (
-                    <Image className="w-4 h-4 mr-2" />
-                  )}
+                <Button variant="outline" onClick={generateImage} disabled={isGeneratingImage}>
+                  {isGeneratingImage ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Image className="w-4 h-4 mr-2" />}
                   {isGeneratingImage ? 'Gerando Imagem...' : 'Gerar Imagem'}
                 </Button>
               </div>
               
-              {/* Image Preview */}
               {formData.image_url && (
                 <div className="mt-4">
                   <p className="text-sm text-muted-foreground mb-2">Imagem gerada:</p>
-                  <img 
-                    src={formData.image_url} 
-                    alt="Preview" 
-                    className="max-w-md rounded-lg border border-border"
-                  />
+                  <img src={formData.image_url} alt="Preview" className="max-w-md rounded-lg border border-border" loading="lazy" />
                 </div>
               )}
             </div>
@@ -539,22 +549,16 @@ const Admin = () => {
             <div className="grid gap-6 max-w-4xl">
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="title">Título</Label>
+                  <Label htmlFor="title">Título *</Label>
                   <Input
                     id="title"
                     value={formData.title}
-                    onChange={(e) => {
-                      setFormData(prev => ({
-                        ...prev,
-                        title: e.target.value,
-                        slug: generateSlug(e.target.value)
-                      }));
-                    }}
+                    onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value, slug: generateSlug(e.target.value) }))}
                     placeholder="Título do artigo"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="slug">Slug (URL)</Label>
+                  <Label htmlFor="slug">Slug (URL) *</Label>
                   <Input
                     id="slug"
                     value={formData.slug}
@@ -576,7 +580,10 @@ const Admin = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="content">Conteúdo (Markdown)</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="content">Conteúdo (Markdown) *</Label>
+                  <span className="text-xs text-muted-foreground">{formData.content.length} caracteres</span>
+                </div>
                 <Textarea
                   id="content"
                   value={formData.content}
@@ -608,13 +615,8 @@ const Admin = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="author">Autor</Label>
-                  <Select
-                    value={formData.author}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, author: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o autor" />
-                    </SelectTrigger>
+                  <Select value={formData.author} onValueChange={(value) => setFormData(prev => ({ ...prev, author: value }))}>
+                    <SelectTrigger><SelectValue placeholder="Selecione o autor" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="Rorschach Motion">Rorschach Motion</SelectItem>
                       <SelectItem value="noface">noface</SelectItem>
@@ -624,92 +626,91 @@ const Admin = () => {
               </div>
 
               <div className="flex items-center gap-3">
-                <Switch
-                  id="published"
-                  checked={formData.published}
-                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, published: checked }))}
-                />
+                <Switch id="published" checked={formData.published} onCheckedChange={(checked) => setFormData(prev => ({ ...prev, published: checked }))} />
                 <Label htmlFor="published" className="flex items-center gap-2">
-                  {formData.published ? (
-                    <>
-                      <Eye className="w-4 h-4" /> Publicado
-                    </>
-                  ) : (
-                    <>
-                      <EyeOff className="w-4 h-4" /> Rascunho
-                    </>
-                  )}
+                  {formData.published ? (<><Eye className="w-4 h-4" /> Publicado</>) : (<><EyeOff className="w-4 h-4" /> Rascunho</>)}
                 </Label>
               </div>
 
-              {/* Zapier Integration */}
-              <div className="p-4 bg-orange-500/10 border border-orange-500/20 rounded-lg space-y-3">
-                <div className="flex items-center gap-3">
-                  <Switch
-                    id="autoTriggerZapier"
-                    checked={autoTriggerZapier}
-                    onCheckedChange={(checked) => {
-                      setAutoTriggerZapier(checked);
-                      saveZapierConfig(zapierWebhookUrl, checked);
-                    }}
-                  />
-                  <Label htmlFor="autoTriggerZapier" className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-orange-500" />
-                    <span>Integração com Zapier</span>
-                  </Label>
-                  {isTriggeringZapier && (
-                    <Loader2 className="w-4 h-4 animate-spin text-orange-500" />
+              {/* Integrations Section */}
+              <div className="space-y-4">
+                <h3 className="font-semibold text-foreground text-sm uppercase tracking-wider text-muted-foreground">Integrações</h3>
+                
+                {/* Zapier */}
+                <div className="p-4 bg-card border border-border rounded-lg space-y-3">
+                  <div className="flex items-center gap-3">
+                    <Switch
+                      id="autoTriggerZapier"
+                      checked={autoTriggerZapier}
+                      onCheckedChange={(checked) => { setAutoTriggerZapier(checked); saveZapierConfig(zapierWebhookUrl, checked); }}
+                    />
+                    <Label htmlFor="autoTriggerZapier" className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-orange-500" />
+                      <span>Integração com Zapier</span>
+                    </Label>
+                    {isTriggeringZapier && <Loader2 className="w-4 h-4 animate-spin text-orange-500" />}
+                  </div>
+                  {autoTriggerZapier && (
+                    <div className="space-y-2">
+                      <Input
+                        placeholder="Cole aqui a URL do seu Webhook Zapier (ex: https://hooks.zapier.com/...)"
+                        value={zapierWebhookUrl}
+                        onChange={(e) => { setZapierWebhookUrl(e.target.value); saveZapierConfig(e.target.value, autoTriggerZapier); }}
+                        className="text-sm"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Ao salvar um post, os dados serão enviados para o Zapier automaticamente com retry automático (até 3 tentativas).
+                      </p>
+                    </div>
                   )}
                 </div>
-                {autoTriggerZapier && (
-                  <div className="space-y-2">
-                    <Input
-                      placeholder="Cole aqui a URL do seu Webhook Zapier (ex: https://hooks.zapier.com/...)"
-                      value={zapierWebhookUrl}
-                      onChange={(e) => {
-                        setZapierWebhookUrl(e.target.value);
-                        saveZapierConfig(e.target.value, autoTriggerZapier);
-                      }}
-                      className="text-sm"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Ao criar um post, os dados serão enviados para o Zapier automaticamente. 
-                      Configure ações como postar no Instagram, enviar email, atualizar planilhas, etc.
+
+                {/* Facebook */}
+                {formData.published && (
+                  <div className="p-4 bg-card border border-border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <Switch id="autoPublishFacebook" checked={autoPublishFacebook} onCheckedChange={setAutoPublishFacebook} />
+                      <Label htmlFor="autoPublishFacebook" className="flex items-center gap-2">
+                        <Facebook className="w-4 h-4 text-blue-500" />
+                        <span>Publicar automaticamente no Facebook</span>
+                      </Label>
+                      {isPublishingToFacebook && <Loader2 className="w-4 h-4 animate-spin text-blue-500" />}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Publica no feed da página com retry automático (até 3 tentativas).
                     </p>
                   </div>
                 )}
               </div>
 
-              {/* Facebook Auto-Publish Toggle */}
-              {!editingPost && formData.published && (
-                <div className="flex items-center gap-3 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                  <Switch
-                    id="autoPublishFacebook"
-                    checked={autoPublishFacebook}
-                    onCheckedChange={setAutoPublishFacebook}
-                  />
-                  <Label htmlFor="autoPublishFacebook" className="flex items-center gap-2">
-                    <Facebook className="w-4 h-4 text-blue-500" />
-                    <span>Publicar automaticamente no Facebook</span>
-                  </Label>
-                  {isPublishingToFacebook && (
-                    <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
-                  )}
+              {/* Integration Logs */}
+              {integrationLogs.length > 0 && (
+                <div className="bg-card border border-border rounded-lg p-4">
+                  <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4" /> Log de Integrações
+                  </h4>
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                    {integrationLogs.map((log, i) => (
+                      <div key={i} className="flex items-start gap-2 text-xs">
+                        {log.status === 'success' && <CheckCircle2 className="w-3.5 h-3.5 text-green-500 mt-0.5 flex-shrink-0" />}
+                        {log.status === 'error' && <AlertCircle className="w-3.5 h-3.5 text-destructive mt-0.5 flex-shrink-0" />}
+                        {log.status === 'pending' && <Loader2 className="w-3.5 h-3.5 text-yellow-500 mt-0.5 animate-spin flex-shrink-0" />}
+                        <span className="text-muted-foreground">
+                          <span className="font-medium text-foreground">{log.service}:</span> {log.message}
+                          <span className="ml-2 opacity-50">{log.timestamp.toLocaleTimeString('pt-BR')}</span>
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
 
               <div className="flex gap-4 pt-4">
-                <Button onClick={handleSave} disabled={isPublishingToFacebook}>
-                  {isPublishingToFacebook ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  ) : (
-                    <Save className="w-4 h-4 mr-2" />
-                  )}
+                <Button onClick={handleSave} disabled={isSaving || isPublishingToFacebook || isTriggeringZapier}>
+                  {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                   {editingPost ? 'Atualizar Post' : 'Criar Post'}
                 </Button>
-                <Button variant="outline" onClick={resetForm}>
-                  Cancelar
-                </Button>
+                <Button variant="outline" onClick={resetForm}>Cancelar</Button>
               </div>
             </div>
           </>
