@@ -21,8 +21,7 @@ const Blog = () => {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Static fallback posts
-  const staticPosts = [
+  const staticPosts: BlogPost[] = [
     {
       id: "static-1",
       title: "Como Construir APIs RESTful Escaláveis",
@@ -66,12 +65,7 @@ const Blog = () => {
           .limit(3);
 
         if (error) throw error;
-        
-        if (data && data.length > 0) {
-          setPosts(data);
-        } else {
-          setPosts(staticPosts);
-        }
+        setPosts(data && data.length > 0 ? data : staticPosts);
       } catch (error) {
         console.error('Error fetching posts:', error);
         setPosts(staticPosts);
@@ -89,6 +83,12 @@ const Blog = () => {
       month: 'short',
       year: 'numeric'
     });
+  };
+
+  const estimateReadTime = (excerpt: string | null) => {
+    if (!excerpt) return '3 min';
+    const words = excerpt.split(/\s+/).length;
+    return `${Math.max(3, Math.ceil(words / 40))} min`;
   };
 
   const displayPosts = posts.length > 0 ? posts : staticPosts;
@@ -115,72 +115,88 @@ const Blog = () => {
           </p>
         </div>
 
-        <div
-          ref={gridAnimation.ref}
-          className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
-        >
-          {displayPosts.map((post, index) => (
-            <article
-              key={post.id}
-              className={`group glass border-gradient rounded-2xl overflow-hidden card-hover transition-all duration-500 ${
-                gridAnimation.isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-              }`}
-              style={{ transitionDelay: `${index * 100}ms` }}
-            >
-              <div className="aspect-[16/10] relative overflow-hidden">
-                <img
-                  src={post.image_url || "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&h=500&fit=crop"}
-                  alt={post.title}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
-                <span className="absolute top-4 left-4 px-3 py-1 rounded-full bg-primary/90 text-primary-foreground text-xs font-medium">
-                  {post.category || 'Motion Design'}
-                </span>
+        {isLoading ? (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="glass rounded-2xl overflow-hidden animate-pulse">
+                <div className="aspect-[16/10] bg-muted/50" />
+                <div className="p-6 space-y-3">
+                  <div className="h-3 bg-muted/50 rounded w-1/3" />
+                  <div className="h-5 bg-muted/50 rounded w-full" />
+                  <div className="h-4 bg-muted/50 rounded w-2/3" />
+                </div>
               </div>
-
-              <div className="p-6">
-                <div className="flex items-center gap-4 text-muted-foreground text-xs mb-3">
-                  <span className="flex items-center gap-1">
-                    <Calendar size={12} />
-                    {formatDate(post.created_at)}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Clock size={12} />
-                    5 min
+            ))}
+          </div>
+        ) : (
+          <div
+            ref={gridAnimation.ref}
+            className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
+            {displayPosts.map((post, index) => (
+              <article
+                key={post.id}
+                className={`group glass border-gradient rounded-2xl overflow-hidden card-hover transition-all duration-500 ${
+                  gridAnimation.isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+                }`}
+                style={{ transitionDelay: `${index * 100}ms` }}
+              >
+                <div className="aspect-[16/10] relative overflow-hidden">
+                  <img
+                    src={post.image_url || "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&h=500&fit=crop"}
+                    alt={post.title}
+                    loading="lazy"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
+                  <span className="absolute top-4 left-4 px-3 py-1 rounded-full bg-primary/90 text-primary-foreground text-xs font-medium">
+                    {post.category || 'Motion Design'}
                   </span>
                 </div>
 
-                <h3 className="font-heading font-bold text-foreground text-lg mb-3 line-clamp-2 group-hover:text-primary transition-colors">
-                  {post.title}
-                </h3>
+                <div className="p-6">
+                  <div className="flex items-center gap-4 text-muted-foreground text-xs mb-3">
+                    <span className="flex items-center gap-1">
+                      <Calendar size={12} />
+                      {formatDate(post.created_at)}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Clock size={12} />
+                      {estimateReadTime(post.excerpt)}
+                    </span>
+                  </div>
 
-                <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
-                  {post.excerpt}
-                </p>
+                  <h3 className="font-heading font-bold text-foreground text-lg mb-3 line-clamp-2 group-hover:text-primary transition-colors">
+                    {post.title}
+                  </h3>
 
-                <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-2 text-muted-foreground text-xs">
-                    <User size={12} />
-                    {post.author || 'Rorschach Motion'}
-                  </span>
-                  <Link 
-                    to={`/blog/${post.slug}`}
-                    className="flex items-center gap-1 text-primary text-sm font-medium group-hover:gap-2 transition-all"
-                  >
-                    Ler mais
-                    <ArrowRight size={14} />
-                  </Link>
+                  <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
+                    {post.excerpt}
+                  </p>
+
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-2 text-muted-foreground text-xs">
+                      <User size={12} />
+                      {post.author || 'Rorschach Motion'}
+                    </span>
+                    <Link 
+                      to={`/blog/${post.slug}`}
+                      className="flex items-center gap-1 text-primary text-sm font-medium group-hover:gap-2 transition-all"
+                    >
+                      Ler mais
+                      <ArrowRight size={14} />
+                    </Link>
+                  </div>
                 </div>
-              </div>
-            </article>
-          ))}
-        </div>
+              </article>
+            ))}
+          </div>
+        )}
 
         <div className="text-center mt-12">
           <a
-            href="#"
-            className="inline-flex items-center gap-2 btn-premium"
+            href="#blog"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-border/50 bg-background/50 backdrop-blur-sm text-foreground font-semibold hover:bg-muted/50 hover:border-primary/30 transition-all duration-300"
           >
             Ver todos os artigos
             <ArrowRight size={16} />
