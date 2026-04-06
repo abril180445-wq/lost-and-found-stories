@@ -1,7 +1,6 @@
 import { ArrowRight, Sparkles } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useCountAnimation } from "@/hooks/useCountAnimation";
-import heroBgVideo from "@/assets/hero-bg.mp4";
 
 const navItems = [
   { label: "Início", href: "#inicio" },
@@ -12,17 +11,49 @@ const navItems = [
   { label: "Contato", href: "#contato" },
 ];
 
+const typingWords = ["ideias", "visões", "projetos", "negócios"];
+
+const useTypewriter = (words: string[], typingSpeed = 100, deletingSpeed = 60, pauseTime = 2000) => {
+  const [text, setText] = useState("");
+  const [wordIndex, setWordIndex] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    const currentWord = words[wordIndex];
+
+    const timeout = setTimeout(() => {
+      if (!isDeleting) {
+        setText(currentWord.slice(0, text.length + 1));
+        if (text.length + 1 === currentWord.length) {
+          setTimeout(() => setIsDeleting(true), pauseTime);
+        }
+      } else {
+        setText(currentWord.slice(0, text.length - 1));
+        if (text.length - 1 === 0) {
+          setIsDeleting(false);
+          setWordIndex((prev) => (prev + 1) % words.length);
+        }
+      }
+    }, isDeleting ? deletingSpeed : typingSpeed);
+
+    return () => clearTimeout(timeout);
+  }, [text, isDeleting, wordIndex, words, typingSpeed, deletingSpeed, pauseTime]);
+
+  return text;
+};
+
 const Hero = () => {
   const [activeSection, setActiveSection] = useState("inicio");
   const yearsCount = useCountAnimation({ end: 8, duration: 2000 });
   const projectsCount = useCountAnimation({ end: 150, duration: 2500 });
   const clientsCount = useCountAnimation({ end: 50, duration: 2200 });
+  const typedWord = useTypewriter(typingWords, 120, 80, 2500);
 
   useEffect(() => {
     const handleScroll = () => {
       const sections = navItems.map(item => item.href.replace("#", ""));
       
-      for (const sectionId of sections.reverse()) {
+      for (const sectionId of [...sections].reverse()) {
         const element = document.getElementById(sectionId);
         if (element) {
           const rect = element.getBoundingClientRect();
@@ -38,13 +69,13 @@ const Hero = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+  const handleNavClick = useCallback((e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault();
     const element = document.querySelector(href);
     if (element) {
       element.scrollIntoView({ behavior: "smooth" });
     }
-  };
+  }, []);
 
   const stats = [
     { value: yearsCount.count, suffix: "+", label: "Anos de Experiência", ref: yearsCount.ref },
@@ -54,24 +85,12 @@ const Hero = () => {
 
   return (
     <section id="inicio" className="min-h-screen flex items-center justify-center pt-20 relative overflow-hidden">
-      {/* Background Video */}
-      <video
-        autoPlay
-        muted
-        loop
-        playsInline
-        className="absolute inset-0 w-full h-full object-cover opacity-40"
-      >
-        <source src={heroBgVideo} type="video/mp4" />
-      </video>
-      
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-background/60" />
-      
       {/* Background Effects */}
+      <div className="absolute inset-0 bg-gradient-to-b from-background via-background/95 to-background" />
       <div className="absolute inset-0 grid-pattern opacity-20" />
       <div className="absolute top-1/4 -left-40 w-80 h-80 bg-primary/20 rounded-full blur-[120px] animate-float-blob-1" />
       <div className="absolute bottom-1/4 -right-40 w-96 h-96 bg-cyan-500/15 rounded-full blur-[150px] animate-float-blob-2" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[200px]" />
 
       <div className="container-custom relative z-10">
         <div className="max-w-4xl mx-auto text-center">
@@ -105,36 +124,18 @@ const Hero = () => {
 
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-primary mb-8 animate-fade-up delay-50">
-            <Sparkles size={16} className="text-primary" />
+            <Sparkles size={16} className="text-primary animate-pulse" />
             <span className="text-primary font-medium text-sm tracking-wide">
               Desenvolvimento de Software
             </span>
           </div>
 
-          {/* Headline */}
+          {/* Headline with typewriter */}
           <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-foreground mb-6 leading-tight animate-fade-up delay-100">
             Transformamos suas{" "}
-            <span className="text-gradient relative">
-              ideias
-              <svg
-                className="absolute -bottom-2 left-0 w-full h-3 animate-draw-line"
-                viewBox="0 0 200 12"
-                fill="none"
-                preserveAspectRatio="none"
-              >
-                <path
-                  d="M2 10C50 2 150 2 198 10"
-                  stroke="url(#gradient)"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                />
-                <defs>
-                  <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="hsl(185 80% 45%)" />
-                    <stop offset="100%" stopColor="hsl(195 85% 55%)" />
-                  </linearGradient>
-                </defs>
-              </svg>
+            <span className="text-gradient relative inline-block min-w-[120px]">
+              {typedWord}
+              <span className="inline-block w-[3px] h-[0.85em] bg-primary ml-1 animate-pulse align-middle" />
             </span>{" "}
             em sistemas
           </h1>
@@ -165,19 +166,19 @@ const Hero = () => {
             </a>
           </div>
 
-          {/* Stats */}
+          {/* Stats with hover effect */}
           <div className="grid grid-cols-3 gap-6 max-w-2xl mx-auto animate-fade-up delay-400">
             {stats.map((stat, index) => (
               <div
                 key={index}
                 ref={stat.ref}
-                className="text-center p-4 rounded-2xl glass-primary border-glow"
+                className="text-center p-4 rounded-2xl glass-primary border-glow group hover:scale-105 transition-transform duration-300"
               >
                 <div className="font-heading font-bold text-3xl sm:text-4xl text-foreground mb-1">
                   {stat.value}
                   <span className="text-primary">{stat.suffix}</span>
                 </div>
-                <p className="text-muted-foreground text-xs sm:text-sm">
+                <p className="text-muted-foreground text-xs sm:text-sm group-hover:text-primary transition-colors duration-300">
                   {stat.label}
                 </p>
               </div>

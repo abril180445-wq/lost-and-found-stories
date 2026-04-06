@@ -1,4 +1,4 @@
-import { ArrowUp, Heart, Instagram, Linkedin, Globe, Youtube, Facebook, Lock } from "lucide-react";
+import { ArrowUp, Heart, Instagram, Linkedin, Globe, Youtube, Facebook, Lock, Mail, Phone, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 
@@ -43,7 +43,7 @@ const Footer = () => {
           {/* Brand */}
           <div className="lg:col-span-1">
             <a href="#inicio" className="flex items-center gap-3 mb-6 group">
-              <div className="w-11 h-11 bg-gradient-to-br from-primary to-cyan-400 rounded-xl flex items-center justify-center shadow-glow transition-transform duration-300 group-hover:scale-105">
+              <div className="w-11 h-11 bg-gradient-to-br from-primary to-cyan-400 rounded-xl flex items-center justify-center shadow-glow transition-transform duration-300 group-hover:scale-105 group-hover:rotate-3">
                 <span className="text-primary-foreground font-heading font-bold text-xl">
                   R
                 </span>
@@ -70,7 +70,7 @@ const Footer = () => {
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={social.label}
-                    className="w-10 h-10 rounded-xl bg-muted/50 border border-border/30 flex items-center justify-center text-muted-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary hover:shadow-glow transition-all duration-300"
+                    className="w-10 h-10 rounded-xl bg-muted/50 border border-border/30 flex items-center justify-center text-muted-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary hover:shadow-glow hover:scale-110 transition-all duration-300"
                   >
                     <social.icon size={18} />
                   </a>
@@ -81,7 +81,8 @@ const Footer = () => {
 
           {/* Quick links */}
           <div>
-            <h4 className="font-heading text-foreground font-bold text-lg mb-6">
+            <h4 className="font-heading text-foreground font-bold text-lg mb-6 flex items-center gap-2">
+              <span className="w-1 h-5 bg-primary rounded-full" />
               Links Rápidos
             </h4>
             <ul className="space-y-3">
@@ -89,7 +90,7 @@ const Footer = () => {
                 <li key={index}>
                   <a
                     href={link.href}
-                    className="text-muted-foreground hover:text-primary transition-colors duration-300 line-reveal inline-block"
+                    className="text-muted-foreground hover:text-primary hover:translate-x-1 transition-all duration-300 inline-flex items-center gap-2"
                   >
                     {link.name}
                   </a>
@@ -100,27 +101,50 @@ const Footer = () => {
 
           {/* Services */}
           <div>
-            <h4 className="font-heading text-foreground font-bold text-lg mb-6">
+            <h4 className="font-heading text-foreground font-bold text-lg mb-6 flex items-center gap-2">
+              <span className="w-1 h-5 bg-primary rounded-full" />
               Serviços
             </h4>
             <ul className="space-y-3">
               {services.map((service, index) => (
                 <li key={index}>
-                  <span className="text-muted-foreground">{service}</span>
+                  <span className="text-muted-foreground hover:text-primary transition-colors duration-300 cursor-default">
+                    {service}
+                  </span>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Contact */}
+          {/* Contact with icons */}
           <div>
-            <h4 className="font-heading text-foreground font-bold text-lg mb-6">
+            <h4 className="font-heading text-foreground font-bold text-lg mb-6 flex items-center gap-2">
+              <span className="w-1 h-5 bg-primary rounded-full" />
               Contato
             </h4>
-            <ul className="space-y-3 text-muted-foreground">
-              <li>{settings.email}</li>
-              <li>{settings.phone}</li>
-              <li>{settings.address}</li>
+            <ul className="space-y-4 text-muted-foreground">
+              {settings.email && (
+                <li className="flex items-center gap-3">
+                  <Mail size={16} className="text-primary flex-shrink-0" />
+                  <a href={`mailto:${settings.email}`} className="hover:text-primary transition-colors duration-300">
+                    {settings.email}
+                  </a>
+                </li>
+              )}
+              {settings.phone && (
+                <li className="flex items-center gap-3">
+                  <Phone size={16} className="text-primary flex-shrink-0" />
+                  <a href={`tel:${settings.phone}`} className="hover:text-primary transition-colors duration-300">
+                    {settings.phone}
+                  </a>
+                </li>
+              )}
+              {settings.address && (
+                <li className="flex items-start gap-3">
+                  <MapPin size={16} className="text-primary flex-shrink-0 mt-0.5" />
+                  <span>{settings.address}</span>
+                </li>
+              )}
             </ul>
           </div>
         </div>
@@ -130,7 +154,7 @@ const Footer = () => {
           <div className="flex items-center gap-4">
             <p className="text-muted-foreground text-sm flex items-center gap-1">
               © {new Date().getFullYear()} Rorschach Motion. Feito com{" "}
-              <Heart size={14} className="text-destructive" /> no Brasil.
+              <Heart size={14} className="text-destructive animate-pulse" /> no Brasil.
             </p>
             <Link
               to="/admin/login"
@@ -142,7 +166,7 @@ const Footer = () => {
           </div>
           <button
             onClick={scrollToTop}
-            className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-300"
+            className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary hover:bg-primary hover:text-primary-foreground hover:scale-110 transition-all duration-300"
             aria-label="Voltar ao topo"
           >
             <ArrowUp size={18} />
