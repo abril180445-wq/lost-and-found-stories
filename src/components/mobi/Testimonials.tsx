@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Star, Quote } from 'lucide-react';
-import useScrollAnimation from '@/hooks/useScrollAnimation';
+import { ChevronLeft, ChevronRight, Star, Quote, MessageSquare } from 'lucide-react';
+import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 
 interface Testimonial {
   id: number;
@@ -13,7 +13,7 @@ interface Testimonial {
 }
 
 const Testimonials = () => {
-  const { elementRef, isVisible } = useScrollAnimation();
+  const headerAnimation = useScrollAnimation();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
 
@@ -58,74 +58,64 @@ const Testimonials = () => {
 
   useEffect(() => {
     if (!isAutoPlaying) return;
-    
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % testimonials.length);
     }, 5000);
-
     return () => clearInterval(interval);
   }, [isAutoPlaying, testimonials.length]);
 
-  const goToSlide = (index: number) => {
+  const pauseAndGo = (index: number) => {
     setCurrentIndex(index);
     setIsAutoPlaying(false);
     setTimeout(() => setIsAutoPlaying(true), 10000);
   };
 
-  const nextSlide = () => {
-    setCurrentIndex((prev) => (prev + 1) % testimonials.length);
-    setIsAutoPlaying(false);
-    setTimeout(() => setIsAutoPlaying(true), 10000);
-  };
-
-  const prevSlide = () => {
-    setCurrentIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length);
-    setIsAutoPlaying(false);
-    setTimeout(() => setIsAutoPlaying(true), 10000);
-  };
-
   return (
-    <section id="testimonials" className="py-24 bg-muted/30 relative overflow-hidden">
-      <div className="container mx-auto px-6">
+    <section id="depoimentos" className="section-padding bg-secondary/50 backdrop-blur-sm relative overflow-hidden">
+      <div className="absolute inset-0 grid-pattern opacity-10" />
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-[150px]" />
+
+      <div className="container-custom relative z-10">
         <div
-          ref={elementRef}
-          className={`text-center mb-16 transition-all duration-1000 ${
-            isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+          ref={headerAnimation.ref}
+          className={`text-center mb-16 transition-all duration-700 ${
+            headerAnimation.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
           }`}
         >
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            O que nossos <span className="text-primary">clientes</span> dizem
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-primary mb-6">
+            <MessageSquare size={16} className="text-primary" />
+            <span className="text-primary font-medium text-sm tracking-wide">Depoimentos</span>
+          </div>
+          <h2 className="font-heading text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6">
+            O que nossos <span className="text-gradient">clientes</span> dizem
           </h2>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+          <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
             Depoimentos reais de quem confiou em nosso trabalho
           </p>
         </div>
 
         <div className="relative max-w-4xl mx-auto">
-          {/* Main testimonial */}
-          <div className="relative overflow-hidden">
+          <div className="overflow-hidden rounded-2xl">
             <div
-              className="flex transition-transform duration-500 ease-out"
+              className="flex transition-transform duration-600 ease-out"
               style={{ transform: `translateX(-${currentIndex * 100}%)` }}
             >
               {testimonials.map((testimonial) => (
-                <div
-                  key={testimonial.id}
-                  className="w-full flex-shrink-0 px-4"
-                >
-                  <div className="bg-card rounded-2xl p-8 md:p-12 border border-border/50 relative">
-                    <Quote className="absolute top-6 left-6 w-12 h-12 text-primary/20" />
+                <div key={testimonial.id} className="w-full flex-shrink-0 px-2 sm:px-4">
+                  <div className="glass border-gradient rounded-2xl p-6 sm:p-10 relative card-hover">
+                    <Quote className="absolute top-4 right-4 w-16 h-16 text-primary/10" />
                     
                     <div className="flex items-center gap-4 mb-6">
                       <img
                         src={testimonial.image}
                         alt={testimonial.name}
-                        className="w-16 h-16 rounded-full object-cover ring-2 ring-primary/30"
+                        loading="lazy"
+                        className="w-16 h-16 rounded-2xl object-cover ring-2 ring-primary/30 shadow-glow"
                       />
                       <div>
-                        <h4 className="font-bold text-foreground">{testimonial.name}</h4>
-                        <p className="text-sm text-muted-foreground">{testimonial.role} - {testimonial.company}</p>
-                        <div className="flex gap-1 mt-1">
+                        <h4 className="font-heading font-bold text-foreground text-lg">{testimonial.name}</h4>
+                        <p className="text-sm text-muted-foreground">{testimonial.role} — {testimonial.company}</p>
+                        <div className="flex gap-0.5 mt-1">
                           {[...Array(testimonial.rating)].map((_, i) => (
                             <Star key={i} className="w-4 h-4 fill-primary text-primary" />
                           ))}
@@ -133,7 +123,7 @@ const Testimonials = () => {
                       </div>
                     </div>
                     
-                    <p className="text-lg text-foreground/90 leading-relaxed italic">
+                    <p className="text-foreground/90 text-lg leading-relaxed italic">
                       "{testimonial.text}"
                     </p>
                   </div>
@@ -142,33 +132,38 @@ const Testimonials = () => {
             </div>
           </div>
 
-          {/* Navigation arrows */}
-          <button
-            onClick={prevSlide}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 p-3 rounded-full bg-card border border-border hover:border-primary transition-colors"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <button
-            onClick={nextSlide}
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 p-3 rounded-full bg-card border border-border hover:border-primary transition-colors"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
+          {/* Navigation */}
+          <div className="flex items-center justify-center gap-4 mt-8">
+            <button
+              onClick={() => pauseAndGo((currentIndex - 1 + testimonials.length) % testimonials.length)}
+              className="w-10 h-10 rounded-xl glass-primary flex items-center justify-center text-muted-foreground hover:text-primary hover:scale-110 transition-all duration-300"
+              aria-label="Anterior"
+            >
+              <ChevronLeft size={20} />
+            </button>
 
-          {/* Dots */}
-          <div className="flex justify-center gap-2 mt-8">
-            {testimonials.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => goToSlide(index)}
-                className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                  index === currentIndex
-                    ? 'bg-primary w-8'
-                    : 'bg-muted-foreground/30 hover:bg-muted-foreground/50'
-                }`}
-              />
-            ))}
+            <div className="flex gap-2">
+              {testimonials.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => pauseAndGo(index)}
+                  className={`h-2 rounded-full transition-all duration-300 ${
+                    index === currentIndex
+                      ? 'bg-primary w-8'
+                      : 'bg-muted-foreground/30 hover:bg-muted-foreground/50 w-2'
+                  }`}
+                  aria-label={`Ir para depoimento ${index + 1}`}
+                />
+              ))}
+            </div>
+
+            <button
+              onClick={() => pauseAndGo((currentIndex + 1) % testimonials.length)}
+              className="w-10 h-10 rounded-xl glass-primary flex items-center justify-center text-muted-foreground hover:text-primary hover:scale-110 transition-all duration-300"
+              aria-label="Próximo"
+            >
+              <ChevronRight size={20} />
+            </button>
           </div>
         </div>
       </div>
