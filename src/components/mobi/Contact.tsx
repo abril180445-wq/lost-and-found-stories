@@ -26,11 +26,9 @@ const Contact = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
-    
     setIsSending(true);
-    // Simulate sending
     await new Promise(r => setTimeout(r, 1000));
-    toast.success("Mensagem enviada com sucesso! Entraremos em contato em breve.");
+    toast.success("Mensagem enviada com sucesso!");
     setFormData({ name: "", email: "", message: "" });
     setErrors({});
     setIsSending(false);
@@ -43,91 +41,76 @@ const Contact = () => {
   ];
 
   return (
-    <section id="contato" className="section-padding bg-secondary/50 backdrop-blur-sm relative overflow-hidden">
-      <div className="absolute inset-0 grid-pattern opacity-10" />
+    <section id="contato" className="py-20 lg:py-28 border-t border-border/30 relative overflow-hidden">
       <div className="container-custom relative z-10">
-        <div ref={headerAnimation.ref} className={`text-center mb-16 transition-all duration-700 ${headerAnimation.isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}>
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-primary mb-6">
-            <Mail size={16} className="text-primary" />
-            <span className="text-primary font-medium text-sm tracking-wide">Contato</span>
-          </div>
-          <h2 className="font-heading text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6">
-            Vamos <span className="text-gradient">conversar</span>
+        <div
+          ref={headerAnimation.ref}
+          className={`text-center mb-16 transition-all duration-700 ${headerAnimation.isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}
+        >
+          <p className="text-primary/80 font-medium text-sm tracking-[0.2em] uppercase mb-4">
+            Contato
+          </p>
+          <h2 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6">
+            Vamos <span className="text-primary">conversar</span>
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
             Pronto para transformar sua ideia em realidade? Entre em contato conosco.
           </p>
         </div>
 
-        <div ref={formAnimation.ref} className={`grid lg:grid-cols-2 gap-12 max-w-5xl mx-auto transition-all duration-700 ${formAnimation.isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}>
-          <div className="space-y-6">
+        <div
+          ref={formAnimation.ref}
+          className={`grid lg:grid-cols-2 gap-12 max-w-5xl mx-auto transition-all duration-700 ${formAnimation.isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}
+        >
+          <div className="space-y-4">
             {contactInfo.map((item, i) => (
-              <div key={i} className="glass border-gradient rounded-xl p-6 flex items-center gap-4 card-hover">
-                <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
-                  <item.icon className="text-primary" size={20} />
+              <div
+                key={i}
+                className="flex items-center gap-4 p-5 rounded-xl border border-border/50 bg-card/30 hover:border-primary/20 transition-colors duration-200"
+              >
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <item.icon className="text-primary" size={18} />
                 </div>
                 <div>
-                  <p className="text-muted-foreground text-sm">{item.label}</p>
-                  <p className="text-foreground font-medium">{item.value}</p>
+                  <p className="text-muted-foreground text-xs uppercase tracking-wider">{item.label}</p>
+                  <p className="text-foreground font-medium text-sm">{item.value}</p>
                 </div>
               </div>
             ))}
           </div>
 
-          <form onSubmit={handleSubmit} className="glass border-gradient rounded-2xl p-8 space-y-5" noValidate>
-            <div>
-              <input
-                type="text"
-                placeholder="Seu nome"
-                value={formData.name}
-                onChange={(e) => { setFormData({...formData, name: e.target.value}); if (errors.name) setErrors(prev => ({...prev, name: ''})); }}
-                aria-label="Seu nome"
-                aria-invalid={!!errors.name}
-                className={`w-full px-4 py-3 rounded-xl bg-muted/50 border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors ${errors.name ? 'border-destructive' : 'border-border/50'}`}
-              />
-              {errors.name && <p className="text-destructive text-xs mt-1">{errors.name}</p>}
-            </div>
-            <div>
-              <input
-                type="email"
-                placeholder="Seu email"
-                value={formData.email}
-                onChange={(e) => { setFormData({...formData, email: e.target.value}); if (errors.email) setErrors(prev => ({...prev, email: ''})); }}
-                aria-label="Seu email"
-                aria-invalid={!!errors.email}
-                className={`w-full px-4 py-3 rounded-xl bg-muted/50 border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors ${errors.email ? 'border-destructive' : 'border-border/50'}`}
-              />
-              {errors.email && <p className="text-destructive text-xs mt-1">{errors.email}</p>}
-            </div>
+          <form onSubmit={handleSubmit} className="rounded-2xl border border-border/50 bg-card/30 p-8 space-y-5" noValidate>
+            {[
+              { key: "name", type: "text", placeholder: "Seu nome" },
+              { key: "email", type: "email", placeholder: "Seu email" },
+            ].map((field) => (
+              <div key={field.key}>
+                <input
+                  type={field.type}
+                  placeholder={field.placeholder}
+                  value={formData[field.key as keyof typeof formData]}
+                  onChange={(e) => { setFormData({ ...formData, [field.key]: e.target.value }); if (errors[field.key]) setErrors(prev => ({ ...prev, [field.key]: '' })); }}
+                  className={`w-full px-4 py-3 rounded-lg bg-background border text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 transition-colors ${errors[field.key] ? 'border-destructive' : 'border-border/50'}`}
+                />
+                {errors[field.key] && <p className="text-destructive text-xs mt-1">{errors[field.key]}</p>}
+              </div>
+            ))}
             <div>
               <textarea
                 placeholder="Sua mensagem"
                 value={formData.message}
-                onChange={(e) => { setFormData({...formData, message: e.target.value}); if (errors.message) setErrors(prev => ({...prev, message: ''})); }}
+                onChange={(e) => { setFormData({ ...formData, message: e.target.value }); if (errors.message) setErrors(prev => ({ ...prev, message: '' })); }}
                 rows={4}
-                aria-label="Sua mensagem"
-                aria-invalid={!!errors.message}
-                className={`w-full px-4 py-3 rounded-xl bg-muted/50 border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary resize-none transition-colors ${errors.message ? 'border-destructive' : 'border-border/50'}`}
+                className={`w-full px-4 py-3 rounded-lg bg-background border text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 resize-none transition-colors ${errors.message ? 'border-destructive' : 'border-border/50'}`}
               />
               {errors.message && <p className="text-destructive text-xs mt-1">{errors.message}</p>}
-              <p className="text-xs text-muted-foreground mt-1 text-right">{formData.message.length}/500</p>
             </div>
             <button
               type="submit"
               disabled={isSending}
-              className="btn-premium w-full flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full py-3 rounded-lg bg-foreground text-background font-semibold text-sm flex items-center justify-center gap-2 hover:bg-foreground/90 transition-colors disabled:opacity-60"
             >
-              {isSending ? (
-                <>
-                  <Loader2 size={18} className="animate-spin" />
-                  Enviando...
-                </>
-              ) : (
-                <>
-                  Enviar Mensagem
-                  <Send size={18} />
-                </>
-              )}
+              {isSending ? <><Loader2 size={16} className="animate-spin" /> Enviando...</> : <><Send size={16} /> Enviar Mensagem</>}
             </button>
           </form>
         </div>

@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { Linkedin, Instagram, Github, Users } from 'lucide-react';
+import { Linkedin, Github } from 'lucide-react';
 import useScrollAnimation from '@/hooks/useScrollAnimation';
 
 import team1 from '@/assets/team-1.jpg';
@@ -12,129 +11,63 @@ interface TeamMember {
   name: string;
   role: string;
   image: string;
-  bio: string;
-  social: {
-    linkedin?: string;
-    instagram?: string;
-    github?: string;
-  };
+  social: { linkedin?: string; github?: string };
 }
 
 const Team = () => {
   const { elementRef, isVisible } = useScrollAnimation();
-  const [hoveredMember, setHoveredMember] = useState<number | null>(null);
 
   const teamMembers: TeamMember[] = [
-    {
-      id: 1,
-      name: "Lucas Rorschach",
-      role: "CEO & Tech Lead",
-      image: team1,
-      bio: "Líder técnico com mais de 10 anos de experiência em arquitetura de software e gestão de times.",
-      social: {
-        linkedin: "#",
-        github: "#"
-      }
-    },
-    {
-      id: 2,
-      name: "Marina Costa",
-      role: "Full Stack Developer",
-      image: team2,
-      bio: "Desenvolvedora full stack especialista em React, Node.js e arquiteturas escaláveis.",
-      social: {
-        linkedin: "#",
-        github: "#"
-      }
-    },
-    {
-      id: 3,
-      name: "Rafael Santos",
-      role: "Backend Developer",
-      image: team3,
-      bio: "Engenheiro de software focado em APIs, microserviços e soluções cloud.",
-      social: {
-        linkedin: "#",
-        github: "#"
-      }
-    },
-    {
-      id: 4,
-      name: "Camila Oliveira",
-      role: "UX/UI Designer",
-      image: team4,
-      bio: "Designer de interfaces com expertise em experiência do usuário e design systems.",
-      social: {
-        linkedin: "#",
-        instagram: "#"
-      }
-    }
+    { id: 1, name: "Lucas Rorschach", role: "CEO & Tech Lead", image: team1, social: { linkedin: "#", github: "#" } },
+    { id: 2, name: "Marina Costa", role: "Full Stack Developer", image: team2, social: { linkedin: "#", github: "#" } },
+    { id: 3, name: "Rafael Santos", role: "Backend Developer", image: team3, social: { linkedin: "#", github: "#" } },
+    { id: 4, name: "Camila Oliveira", role: "UX/UI Designer", image: team4, social: { linkedin: "#" } },
   ];
 
   return (
-    <section id="team" className="py-24 bg-background relative overflow-hidden">
-      <div className="absolute inset-0 dots-pattern opacity-10" />
-      <div className="container mx-auto px-6 relative z-10">
+    <section id="team" className="py-20 lg:py-28 border-t border-border/30 relative overflow-hidden">
+      <div className="container-custom relative z-10">
         <div
           ref={elementRef}
-          className={`text-center mb-16 transition-all duration-1000 ${
-            isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-          }`}
+          className={`text-center mb-16 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
         >
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-primary mb-6">
-            <Users size={16} className="text-primary" />
-            <span className="text-primary font-medium text-sm tracking-wide">Equipe</span>
-          </div>
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            Nosso <span className="text-gradient">Time</span>
+          <p className="text-primary/80 font-medium text-sm tracking-[0.2em] uppercase mb-4">Equipe</p>
+          <h2 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
+            Nosso <span className="text-primary">Time</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             Conheça os profissionais por trás das suas soluções tecnológicas
           </p>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
           {teamMembers.map((member, index) => (
             <div
               key={member.id}
-              className={`group relative transition-all duration-700 ${
-                isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-              }`}
+              className={`group text-center transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
               style={{ transitionDelay: `${index * 100}ms` }}
-              onMouseEnter={() => setHoveredMember(member.id)}
-              onMouseLeave={() => setHoveredMember(null)}
             >
-              <div className="relative overflow-hidden rounded-2xl glass border-gradient p-6 hover:border-primary/50 transition-all duration-300 card-hover">
-                <div className="relative w-28 h-28 mx-auto mb-4 rounded-full overflow-hidden ring-2 ring-primary/20 group-hover:ring-primary/50 transition-all duration-300">
-                  <img
-                    src={member.image}
-                    alt={member.name}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                </div>
-                
-                <h3 className="text-lg font-bold text-foreground mb-1 text-center">{member.name}</h3>
-                <p className="text-primary text-sm mb-3 text-center">{member.role}</p>
-                <p className="text-muted-foreground text-sm mb-4 text-center line-clamp-2">{member.bio}</p>
-                
-                <div className="flex justify-center gap-3">
-                  {member.social.linkedin && (
-                    <a href={member.social.linkedin} className="p-2 rounded-full bg-muted/50 hover:bg-primary/20 hover:text-primary transition-colors">
-                      <Linkedin className="w-4 h-4" />
-                    </a>
-                  )}
-                  {member.social.instagram && (
-                    <a href={member.social.instagram} className="p-2 rounded-full bg-muted/50 hover:bg-primary/20 hover:text-primary transition-colors">
-                      <Instagram className="w-4 h-4" />
-                    </a>
-                  )}
-                  {member.social.github && (
-                    <a href={member.social.github} className="p-2 rounded-full bg-muted/50 hover:bg-primary/20 hover:text-primary transition-colors">
-                      <Github className="w-4 h-4" />
-                    </a>
-                  )}
-                </div>
+              <div className="relative w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden ring-2 ring-border group-hover:ring-primary/30 transition-all duration-300">
+                <img
+                  src={member.image}
+                  alt={member.name}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
+              </div>
+              <h3 className="font-heading font-bold text-foreground text-base mb-0.5">{member.name}</h3>
+              <p className="text-primary/70 text-sm mb-3">{member.role}</p>
+              <div className="flex justify-center gap-2">
+                {member.social.linkedin && (
+                  <a href={member.social.linkedin} className="p-1.5 rounded-md text-muted-foreground hover:text-foreground transition-colors">
+                    <Linkedin className="w-4 h-4" />
+                  </a>
+                )}
+                {member.social.github && (
+                  <a href={member.social.github} className="p-1.5 rounded-md text-muted-foreground hover:text-foreground transition-colors">
+                    <Github className="w-4 h-4" />
+                  </a>
+                )}
               </div>
             </div>
           ))}
