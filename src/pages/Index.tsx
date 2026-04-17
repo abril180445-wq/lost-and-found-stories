@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense, memo, useEffect } from "react";
+import { useState, lazy, Suspense, memo } from "react";
 import Header from "@/components/mobi/Header";
 import Hero from "@/components/mobi/Hero";
 import Footer from "@/components/mobi/Footer";
@@ -7,6 +7,7 @@ import LoadingScreen from "@/components/mobi/LoadingScreen";
 import FloatingElements from "@/components/mobi/FloatingElements";
 import CustomCursor from "@/components/mobi/CustomCursor";
 import ChatBot from "@/components/mobi/ChatBot";
+import { SEO } from "@/components/seo/SEO";
 
 const Clients = lazy(() => import("@/components/mobi/Clients"));
 const About = lazy(() => import("@/components/mobi/About"));
@@ -28,33 +29,19 @@ const SectionLoader = memo(() => (
   </div>
 ));
 
+const orgJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "Rorschach Motion",
+  url: "https://rorschachmotion.com.br",
+  description: "Agência de motion design premium. Especialistas em animação, vídeo institucional e branding em movimento.",
+  foundingDate: "2016",
+  address: { "@type": "PostalAddress", addressCountry: "BR", addressLocality: "Curitiba", addressRegion: "PR" },
+  contactPoint: { "@type": "ContactPoint", telephone: "+55-41-99753-9084", contactType: "customer service", areaServed: "BR" },
+};
+
 const Index = () => {
   const [isLoading, setIsLoading] = useState(true);
-
-  // JSON-LD structured data for SEO
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.type = 'application/ld+json';
-    script.textContent = JSON.stringify({
-      "@context": "https://schema.org",
-      "@type": "Organization",
-      "name": "Rorschach Motion",
-      "url": "https://rorschachmotion.com",
-      "description": "Há mais de 8 anos desenvolvendo sistemas web, aplicativos mobile e soluções tecnológicas que impulsionam negócios.",
-      "foundingDate": "2016",
-      "sameAs": [],
-      "address": {
-        "@type": "PostalAddress",
-        "addressCountry": "BR"
-      },
-      "offers": {
-        "@type": "AggregateOffer",
-        "description": "Desenvolvimento Web, Aplicações Mobile, APIs e Integrações, DevOps e Cloud"
-      }
-    });
-    document.head.appendChild(script);
-    return () => { document.head.removeChild(script); };
-  }, []);
 
   if (isLoading) {
     return <LoadingScreen onLoadingComplete={() => setIsLoading(false)} />;
@@ -62,6 +49,11 @@ const Index = () => {
 
   return (
     <div className="min-h-screen relative overflow-hidden dark">
+      <SEO
+        title="Rorschach Motion | Agência de Motion Design Premium"
+        description="Transformamos ideias em experiências visuais memoráveis. Motion design, animação 3D e vídeo para marcas que buscam impacto."
+        jsonLd={orgJsonLd}
+      />
       <FloatingElements />
       <CustomCursor />
       

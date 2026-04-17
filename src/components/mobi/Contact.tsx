@@ -3,6 +3,16 @@ import { Mail, Phone, MapPin, Send, Loader2 } from "lucide-react";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useState } from "react";
 import { toast } from "sonner";
+import { z } from "zod";
+import { supabase } from "@/integrations/supabase/client";
+import { readUTMs } from "@/hooks/useUTMTracking";
+import { track } from "@/lib/tracking";
+
+const FormSchema = z.object({
+  name: z.string().trim().min(2, "Nome muito curto").max(120),
+  email: z.string().trim().email("Email inválido").max(255),
+  message: z.string().trim().min(10, "Mensagem muito curta (mín. 10 caracteres)").max(2000),
+});
 
 const Contact = () => {
   const headerAnimation = useScrollAnimation();
@@ -12,32 +22,49 @@ const Contact = () => {
   const [isSending, setIsSending] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const validate = () => {
-    const newErrors: Record<string, string> = {};
-    if (!formData.name.trim()) newErrors.name = "Nome é obrigatório";
-    if (!formData.email.trim()) newErrors.email = "Email é obrigatório";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = "Email inválido";
-    if (!formData.message.trim()) newErrors.message = "Mensagem é obrigatória";
-    else if (formData.message.trim().length < 10) newErrors.message = "Mensagem muito curta (mín. 10 caracteres)";
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validate()) return;
+    const result = FormSchema.safeParse(formData);
+    if (!result.success) {
+      const errs: Record<string, string> = {};
+      Object.entries(result.error.flatten().fieldErrors).forEach(([k, v]) => {
+        if (v?.[0]) errs[k] = v[0];
+      });
+      setErrors(errs);
+      return;
+    }
     setIsSending(true);
-    await new Promise(r => setTimeout(r, 1000));
-    toast.success("Mensagem enviada com sucesso!");
-    setFormData({ name: "", email: "", message: "" });
-    setErrors({});
-    setIsSending(false);
+    try {
+      const utms = readUTMs();
+      const { data, error } = await supabase.functions.invoke("submit-lead", {
+        body: {
+          nome: formData.name,
+          email: formData.email,
+          mensagem: formData.message,
+          ...utms,
+          pagina_origem: window.location.href,
+        },
+      });
+      if (error || (data as { error?: string })?.error) {
+        throw new Error((data as { error?: string })?.error || error?.message || "Erro");
+      }
+      track.formSubmit("contato", {});
+      track.conversion("lead");
+      toast.success("Mensagem enviada com sucesso!");
+      setFormData({ name: "", email: "", message: "" });
+      setErrors({});
+    } catch (err) {
+      console.error(err);
+      toast.error("Não foi possível enviar. Tente novamente.");
+    } finally {
+      setIsSending(false);
+    }
   };
 
   const contactInfo = [
-    { icon: Mail, label: "Email", value: settings.email },
-    { icon: Phone, label: "Telefone", value: settings.phone },
-    { icon: MapPin, label: "Localização", value: settings.address },
+    { icon: Mail, label: "Email", value: settings.email, onClick: () => track.emailClick() },
+    { icon: Phone, label: "Telefone", value: settings.phone, onClick: () => track.phoneClick() },
+    { icon: MapPin, label: "Localização", value: settings.address, onClick: undefined as undefined | (() => void) },
   ];
 
   return (
@@ -66,6 +93,7 @@ const Contact = () => {
             {contactInfo.map((item, i) => (
               <div
                 key={i}
+                onClick={item.onClick}
                 className="flex items-center gap-4 p-5 rounded-xl border border-border/50 bg-card/30 hover:border-primary/20 transition-colors duration-200"
               >
                 <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">

@@ -390,7 +390,13 @@ const Admin = () => {
             <h1 className="text-xl font-bold text-foreground">Admin Panel</h1>
             <span className="text-sm text-muted-foreground hidden sm:block">{user?.email}</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap justify-end">
+            <Button variant="ghost" size="sm" onClick={() => navigate('/admin/leads')}>
+              📥 Leads
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => navigate('/admin/configuracoes')}>
+              ⚙️ Tracking
+            </Button>
             <Button variant="ghost" size="sm" onClick={() => navigate('/')}>
               <ArrowLeft className="w-4 h-4 mr-1" /> Site
             </Button>
