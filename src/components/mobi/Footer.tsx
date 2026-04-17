@@ -97,10 +97,19 @@ const Footer = () => {
 
         {/* Bottom */}
         <div className="flex flex-col sm:flex-row items-center justify-between pt-8 border-t border-border/30 gap-4">
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
             <p className="text-muted-foreground text-xs">
               © {new Date().getFullYear()} Rorschach Motion
             </p>
+            <Link to="/politica-privacidade" className="text-muted-foreground/70 hover:text-foreground text-xs transition-colors">
+              Privacidade
+            </Link>
+            <Link to="/termos" className="text-muted-foreground/70 hover:text-foreground text-xs transition-colors">
+              Termos
+            </Link>
+            <Link to="/orcamento" className="text-muted-foreground/70 hover:text-foreground text-xs transition-colors">
+              Orçamento
+            </Link>
             <Link to="/admin/login" className="text-muted-foreground/40 hover:text-muted-foreground text-xs flex items-center gap-1 transition-colors">
               <Lock size={10} />
               Admin
