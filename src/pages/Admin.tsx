@@ -33,7 +33,9 @@ import {
   RefreshCw,
   AlertCircle,
   CheckCircle2,
-  Clock
+  Clock,
+  Wand2,
+  Zap
 } from 'lucide-react';
 
 interface BlogPost {
@@ -75,6 +77,12 @@ const Admin = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [integrationLogs, setIntegrationLogs] = useState<IntegrationLog[]>([]);
+  const [isAutoGenerating, setIsAutoGenerating] = useState(false);
+  const [autoGenerateImage, setAutoGenerateImage] = useState(true);
+  const [autoPublishOnGenerate, setAutoPublishOnGenerate] = useState(true);
+  const [batchCount, setBatchCount] = useState(3);
+  const [isBatchRunning, setIsBatchRunning] = useState(false);
+  const [batchProgress, setBatchProgress] = useState({ done: 0, total: 0, current: '' });
 
   const [formData, setFormData] = useState({
     title: '',
@@ -186,6 +194,119 @@ const Admin = () => {
     } finally {
       setIsGeneratingImage(false);
     }
+  };
+
+  // 🚀 Geração 100% automática: tópico (opcional) → título + slug + resumo + artigo + categoria + imagem → salva → integrações
+  const generateAutoPost = async (opts?: { topic?: string; silent?: boolean; autoSave?: boolean }) => {
+    const useTopic = (opts?.topic ?? aiTopic).trim();
+    const shouldSave = opts?.autoSave ?? autoPublishOnGenerate;
+    setIsAutoGenerating(true);
+    setIntegrationLogs([]);
+    addLog('IA', 'pending', useTopic ? `Gerando artigo sobre "${useTopic}"...` : 'IA escolhendo tópico e gerando artigo...');
+
+    try {
+      // 1) Gera artigo estruturado em uma única chamada
+      const { data, error } = await supabase.functions.invoke('generate-blog-auto', {
+        body: { topic: useTopic || undefined, suggestTopic: !useTopic },
+      });
+      if (error) throw error;
+      if (!data?.title) throw new Error('IA não retornou conteúdo válido');
+
+      addLog('IA', 'success', `Artigo gerado: "${data.title}"`);
+
+      // 2) Imagem (opcional)
+      let imageUrl = '';
+      if (autoGenerateImage) {
+        addLog('Imagem IA', 'pending', 'Gerando imagem de capa...');
+        try {
+          const { data: img, error: imgErr } = await supabase.functions.invoke('generate-blog-image', {
+            body: { topic: data.imagePrompt || data.title, slug: data.slug },
+          });
+          if (imgErr) throw imgErr;
+          imageUrl = img?.imageUrl || '';
+          if (imageUrl) addLog('Imagem IA', 'success', 'Imagem gerada e salva');
+          else addLog('Imagem IA', 'error', 'Sem imagem retornada');
+        } catch (e: any) {
+          addLog('Imagem IA', 'error', e.message || 'Falha ao gerar imagem');
+        }
+      }
+
+      const newPost = {
+        title: data.title,
+        slug: data.slug,
+        excerpt: data.excerpt,
+        content: data.content,
+        image_url: imageUrl,
+        category: data.category || 'Motion Design',
+        author: 'Rorschach Motion',
+        published: shouldSave,
+      };
+
+      // Reflete no formulário (mesmo se autoSave)
+      setFormData(newPost);
+      setIsCreating(true);
+
+      // 3) Salva direto no banco se autoSave
+      if (shouldSave) {
+        addLog('Banco', 'pending', 'Salvando no banco de dados...');
+        const { error: insErr } = await supabase.from('blog_posts').insert([newPost]);
+        if (insErr) {
+          if (insErr.code === '23505') {
+            addLog('Banco', 'error', 'Slug duplicado, gere novamente');
+            throw new Error('Slug duplicado');
+          }
+          throw insErr;
+        }
+        addLog('Banco', 'success', 'Post publicado!');
+
+        // 4) Integrações
+        if (autoPublishFacebook) {
+          await publishToFacebook(newPost.title, newPost.excerpt, newPost.slug, newPost.image_url || undefined);
+        }
+        if (autoTriggerZapier && zapierWebhookUrl.trim()) {
+          await triggerZapierWebhook({
+            title: newPost.title, excerpt: newPost.excerpt, slug: newPost.slug,
+            category: newPost.category, image_url: newPost.image_url || undefined, published: true,
+          });
+        }
+        await fetchPosts();
+        if (!opts?.silent) toast.success('🎉 Post publicado automaticamente!');
+      } else if (!opts?.silent) {
+        toast.success('Conteúdo gerado! Revise e salve.');
+      }
+
+      return { success: true, post: newPost };
+    } catch (e: any) {
+      console.error('Auto generate error:', e);
+      addLog('IA', 'error', e.message || 'Falha desconhecida');
+      if (!opts?.silent) toast.error(e.message || 'Erro na geração automática');
+      return { success: false };
+    } finally {
+      setIsAutoGenerating(false);
+    }
+  };
+
+  // 🔁 Modo lote: gera N posts em sequência
+  const runBatchGeneration = async () => {
+    if (batchCount < 1 || batchCount > 10) {
+      toast.error('Escolha entre 1 e 10 posts');
+      return;
+    }
+    setIsBatchRunning(true);
+    setBatchProgress({ done: 0, total: batchCount, current: '' });
+    let success = 0;
+    for (let i = 0; i < batchCount; i++) {
+      setBatchProgress(prev => ({ ...prev, current: `Gerando ${i + 1}/${batchCount}...` }));
+      const r = await generateAutoPost({ topic: '', silent: true, autoSave: true });
+      if (r.success) success++;
+      setBatchProgress(prev => ({ ...prev, done: i + 1 }));
+      // Pausa entre geração para evitar rate limit
+      if (i < batchCount - 1) await new Promise(r => setTimeout(r, 3000));
+    }
+    setIsBatchRunning(false);
+    toast.success(`Lote concluído: ${success}/${batchCount} posts publicados`);
+    setBatchProgress({ done: 0, total: 0, current: '' });
+    resetForm();
   };
 
   const publishToFacebook = async (title: string, excerpt: string, slug: string, imageUrl?: string, retryCount = 0): Promise<boolean> => {
@@ -424,6 +545,111 @@ const Admin = () => {
                 <p className="text-2xl font-bold text-yellow-500">{draftCount}</p>
                 <p className="text-xs text-muted-foreground">Rascunhos</p>
               </div>
+            </div>
+
+            {/* 🚀 Modo 100% Automático */}
+            <div className="bg-gradient-to-br from-primary/5 to-primary/10 border-2 border-primary/30 rounded-xl p-6 mb-8">
+              <div className="flex items-center gap-2 mb-2">
+                <Wand2 className="w-5 h-5 text-primary" />
+                <h3 className="text-lg font-bold text-foreground">Geração 100% Automática</h3>
+                <span className="text-[10px] uppercase tracking-wider bg-primary text-primary-foreground px-2 py-0.5 rounded-full font-bold">IA</span>
+              </div>
+              <p className="text-sm text-muted-foreground mb-4">
+                A IA escreve título, resumo, artigo completo, categoria e gera a imagem de capa. Opcionalmente publica e dispara as integrações.
+              </p>
+
+              <div className="grid md:grid-cols-[1fr_auto] gap-3 mb-4">
+                <Input
+                  placeholder="Tópico (deixe vazio para a IA escolher um tema atual)"
+                  value={aiTopic}
+                  onChange={(e) => setAiTopic(e.target.value)}
+                  disabled={isAutoGenerating || isBatchRunning}
+                />
+                <Button
+                  onClick={() => generateAutoPost()}
+                  disabled={isAutoGenerating || isBatchRunning}
+                  size="lg"
+                  className="font-semibold"
+                >
+                  {isAutoGenerating ? (
+                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Gerando...</>
+                  ) : (
+                    <><Wand2 className="w-4 h-4 mr-2" /> Gerar {autoPublishOnGenerate ? '& Publicar' : 'Rascunho'}</>
+                  )}
+                </Button>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-3 mb-4 text-sm">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Switch checked={autoGenerateImage} onCheckedChange={setAutoGenerateImage} disabled={isAutoGenerating || isBatchRunning} />
+                  <span className="flex items-center gap-1"><Image className="w-3.5 h-3.5" /> Gerar imagem</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Switch checked={autoPublishOnGenerate} onCheckedChange={setAutoPublishOnGenerate} disabled={isAutoGenerating || isBatchRunning} />
+                  <span className="flex items-center gap-1"><Eye className="w-3.5 h-3.5" /> Publicar direto</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Switch checked={autoPublishFacebook} onCheckedChange={setAutoPublishFacebook} disabled={isAutoGenerating || isBatchRunning} />
+                  <span className="flex items-center gap-1"><Facebook className="w-3.5 h-3.5 text-blue-500" /> Auto-Facebook</span>
+                </label>
+              </div>
+
+              {/* Lote */}
+              <div className="border-t border-border pt-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Zap className="w-4 h-4 text-yellow-500" />
+                  <span className="text-sm font-semibold">Modo Lote</span>
+                  <span className="text-xs text-muted-foreground">— gera vários posts de uma vez (a IA escolhe os tópicos)</span>
+                </div>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="batchCount" className="text-sm">Qtd:</Label>
+                    <Input
+                      id="batchCount"
+                      type="number"
+                      min={1}
+                      max={10}
+                      value={batchCount}
+                      onChange={(e) => setBatchCount(parseInt(e.target.value) || 1)}
+                      className="w-20"
+                      disabled={isBatchRunning || isAutoGenerating}
+                    />
+                  </div>
+                  <Button
+                    onClick={runBatchGeneration}
+                    disabled={isBatchRunning || isAutoGenerating}
+                    variant="secondary"
+                  >
+                    {isBatchRunning ? (
+                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> {batchProgress.current} ({batchProgress.done}/{batchProgress.total})</>
+                    ) : (
+                      <><Zap className="w-4 h-4 mr-2" /> Gerar {batchCount} posts em lote</>
+                    )}
+                  </Button>
+                </div>
+                {isBatchRunning && (
+                  <div className="mt-3 w-full bg-muted rounded-full h-2 overflow-hidden">
+                    <div
+                      className="h-full bg-primary transition-all duration-500"
+                      style={{ width: `${(batchProgress.done / batchProgress.total) * 100}%` }}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Logs em tempo real */}
+              {integrationLogs.length > 0 && (isAutoGenerating || isBatchRunning) && (
+                <div className="mt-4 bg-background/50 border border-border rounded-lg p-3 max-h-32 overflow-y-auto">
+                  {integrationLogs.slice(0, 5).map((log, i) => (
+                    <div key={i} className="flex items-start gap-2 text-xs py-0.5">
+                      {log.status === 'success' && <CheckCircle2 className="w-3 h-3 text-green-500 mt-0.5 flex-shrink-0" />}
+                      {log.status === 'error' && <AlertCircle className="w-3 h-3 text-destructive mt-0.5 flex-shrink-0" />}
+                      {log.status === 'pending' && <Loader2 className="w-3 h-3 text-yellow-500 mt-0.5 animate-spin flex-shrink-0" />}
+                      <span className="text-muted-foreground"><span className="font-medium text-foreground">{log.service}:</span> {log.message}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Header & Search */}
