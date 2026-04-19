@@ -50,6 +50,10 @@ interface BlogPost {
   published: boolean | null;
   created_at: string;
   updated_at: string;
+  meta_description?: string | null;
+  meta_keywords?: string | null;
+  tags?: string[] | null;
+  og_image?: string | null;
 }
 
 type IntegrationLog = {
@@ -467,14 +471,17 @@ const Admin = () => {
       image_url: post.image_url || '',
       category: post.category || 'Motion Design',
       author: post.author || 'Rorschach Motion',
-      published: post.published || false
+      published: post.published || false,
+      meta_description: post.meta_description || '',
+      meta_keywords: post.meta_keywords || '',
+      tags: post.tags || [],
     });
     setIsCreating(true);
     setIntegrationLogs([]);
   };
 
   const resetForm = () => {
-    setFormData({ title: '', slug: '', excerpt: '', content: '', image_url: '', category: 'Motion Design', author: 'Rorschach Motion', published: true });
+    setFormData({ title: '', slug: '', excerpt: '', content: '', image_url: '', category: 'Motion Design', author: 'Rorschach Motion', published: true, meta_description: '', meta_keywords: '', tags: [] });
     setEditingPost(null);
     setIsCreating(false);
     setAiTopic('');
