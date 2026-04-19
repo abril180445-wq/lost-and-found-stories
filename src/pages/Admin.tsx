@@ -77,6 +77,12 @@ const Admin = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [integrationLogs, setIntegrationLogs] = useState<IntegrationLog[]>([]);
+  const [isAutoGenerating, setIsAutoGenerating] = useState(false);
+  const [autoGenerateImage, setAutoGenerateImage] = useState(true);
+  const [autoPublishOnGenerate, setAutoPublishOnGenerate] = useState(true);
+  const [batchCount, setBatchCount] = useState(3);
+  const [isBatchRunning, setIsBatchRunning] = useState(false);
+  const [batchProgress, setBatchProgress] = useState({ done: 0, total: 0, current: '' });
 
   const [formData, setFormData] = useState({
     title: '',
