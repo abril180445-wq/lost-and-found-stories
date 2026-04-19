@@ -196,6 +196,118 @@ const Admin = () => {
     }
   };
 
+  // 🚀 Geração 100% automática: tópico (opcional) → título + slug + resumo + artigo + categoria + imagem → salva → integrações
+  const generateAutoPost = async (opts?: { topic?: string; silent?: boolean; autoSave?: boolean }) => {
+    const useTopic = (opts?.topic ?? aiTopic).trim();
+    const shouldSave = opts?.autoSave ?? autoPublishOnGenerate;
+    setIsAutoGenerating(true);
+    setIntegrationLogs([]);
+    addLog('IA', 'pending', useTopic ? `Gerando artigo sobre "${useTopic}"...` : 'IA escolhendo tópico e gerando artigo...');
+
+    try {
+      // 1) Gera artigo estruturado em uma única chamada
+      const { data, error } = await supabase.functions.invoke('generate-blog-auto', {
+        body: { topic: useTopic || undefined, suggestTopic: !useTopic },
+      });
+      if (error) throw error;
+      if (!data?.title) throw new Error('IA não retornou conteúdo válido');
+
+      addLog('IA', 'success', `Artigo gerado: "${data.title}"`);
+
+      // 2) Imagem (opcional)
+      let imageUrl = '';
+      if (autoGenerateImage) {
+        addLog('Imagem IA', 'pending', 'Gerando imagem de capa...');
+        try {
+          const { data: img, error: imgErr } = await supabase.functions.invoke('generate-blog-image', {
+            body: { topic: data.imagePrompt || data.title, slug: data.slug },
+          });
+          if (imgErr) throw imgErr;
+          imageUrl = img?.imageUrl || '';
+          if (imageUrl) addLog('Imagem IA', 'success', 'Imagem gerada e salva');
+          else addLog('Imagem IA', 'error', 'Sem imagem retornada');
+        } catch (e: any) {
+          addLog('Imagem IA', 'error', e.message || 'Falha ao gerar imagem');
+        }
+      }
+
+      const newPost = {
+        title: data.title,
+        slug: data.slug,
+        excerpt: data.excerpt,
+        content: data.content,
+        image_url: imageUrl,
+        category: data.category || 'Motion Design',
+        author: 'Rorschach Motion',
+        published: shouldSave,
+      };
+
+      // Reflete no formulário (mesmo se autoSave)
+      setFormData(newPost);
+      setIsCreating(true);
+
+      // 3) Salva direto no banco se autoSave
+      if (shouldSave) {
+        addLog('Banco', 'pending', 'Salvando no banco de dados...');
+        const { error: insErr } = await supabase.from('blog_posts').insert([newPost]);
+        if (insErr) {
+          if (insErr.code === '23505') {
+            addLog('Banco', 'error', 'Slug duplicado, gere novamente');
+            throw new Error('Slug duplicado');
+          }
+          throw insErr;
+        }
+        addLog('Banco', 'success', 'Post publicado!');
+
+        // 4) Integrações
+        if (autoPublishFacebook) {
+          await publishToFacebook(newPost.title, newPost.excerpt, newPost.slug, newPost.image_url || undefined);
+        }
+        if (autoTriggerZapier && zapierWebhookUrl.trim()) {
+          await triggerZapierWebhook({
+            title: newPost.title, excerpt: newPost.excerpt, slug: newPost.slug,
+            category: newPost.category, image_url: newPost.image_url || undefined, published: true,
+          });
+        }
+        await fetchPosts();
+        if (!opts?.silent) toast.success('🎉 Post publicado automaticamente!');
+      } else if (!opts?.silent) {
+        toast.success('Conteúdo gerado! Revise e salve.');
+      }
+
+      return { success: true, post: newPost };
+    } catch (e: any) {
+      console.error('Auto generate error:', e);
+      addLog('IA', 'error', e.message || 'Falha desconhecida');
+      if (!opts?.silent) toast.error(e.message || 'Erro na geração automática');
+      return { success: false };
+    } finally {
+      setIsAutoGenerating(false);
+    }
+  };
+
+  // 🔁 Modo lote: gera N posts em sequência
+  const runBatchGeneration = async () => {
+    if (batchCount < 1 || batchCount > 10) {
+      toast.error('Escolha entre 1 e 10 posts');
+      return;
+    }
+    setIsBatchRunning(true);
+    setBatchProgress({ done: 0, total: batchCount, current: '' });
+    let success = 0;
+    for (let i = 0; i < batchCount; i++) {
+      setBatchProgress(prev => ({ ...prev, current: `Gerando ${i + 1}/${batchCount}...` }));
+      const r = await generateAutoPost({ topic: '', silent: true, autoSave: true });
+      if (r.success) success++;
+      setBatchProgress(prev => ({ ...prev, done: i + 1 }));
+      // Pausa entre geração para evitar rate limit
+      if (i < batchCount - 1) await new Promise(r => setTimeout(r, 3000));
+    }
+    setIsBatchRunning(false);
+    toast.success(`Lote concluído: ${success}/${batchCount} posts publicados`);
+    setBatchProgress({ done: 0, total: 0, current: '' });
+    resetForm();
+
   const publishToFacebook = async (title: string, excerpt: string, slug: string, imageUrl?: string, retryCount = 0): Promise<boolean> => {
     setIsPublishingToFacebook(true);
     addLog('Facebook', 'pending', 'Publicando...');
