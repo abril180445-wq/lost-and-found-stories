@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -25,9 +26,21 @@ serve(async (req) => {
     };
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY não configurada');
 
-    // Fase 1: se não vier tópico ou for solicitado, IA sugere um
+    const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
+
+    // Busca títulos recentes para evitar duplicação
+    const { data: recent } = await supabase
+      .from('blog_posts')
+      .select('title')
+      .order('created_at', { ascending: false })
+      .limit(20);
+    const recentTitles = (recent || []).map((p: any) => `- ${p.title}`).join('\n');
+
+    // Fase 1: se não vier tópico, IA sugere um inédito
     if (!topic || suggestTopic) {
       const tRes = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
         method: 'POST',
@@ -35,8 +48,13 @@ serve(async (req) => {
         body: JSON.stringify({
           model: 'google/gemini-2.5-flash',
           messages: [
-            { role: 'system', content: 'Você é estrategista de conteúdo para uma agência de motion design e animação. Responda APENAS com o tópico, sem explicações.' },
-            { role: 'user', content: 'Sugira UM tópico de blog atual, relevante e com bom potencial de SEO sobre motion design, animação 2D/3D, branding em movimento ou design visual. Máximo 12 palavras. Apenas o tópico, sem aspas.' },
+            { role: 'system', content: 'Estrategista de conteúdo de uma agência de motion design. Responda APENAS com o tópico em português, sem aspas nem explicação.' },
+            { role: 'user', content: `Sugira UM tópico INÉDITO de blog (máx 12 palavras) sobre motion design, animação 2D/3D, branding em movimento, design visual ou tendências.
+
+Já cobrimos estes (NÃO repita nem use variações):
+${recentTitles || '(nenhum ainda)'}
+
+Apenas o tópico, sem aspas.` },
           ],
         }),
       });
@@ -46,7 +64,7 @@ serve(async (req) => {
       if (!topic) throw new Error('Tópico vazio');
     }
 
-    // Fase 2: gera tudo em UMA chamada via tool calling (estruturado)
+    // Fase 2: gera artigo + SEO em uma única chamada via tool calling
     const aiRes = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, 'Content-Type': 'application/json' },
@@ -55,7 +73,7 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `Você é redator sênior de uma agência de motion design e animação. Escreva em português brasileiro com tom profissional, envolvente e útil. SEO em mente: use palavras-chave naturalmente, parágrafos escaneáveis e CTAs sutis.`,
+            content: 'Você é redator sênior de uma agência de motion design. Português brasileiro, tom profissional e envolvente. SEO em mente: palavras-chave naturais, parágrafos escaneáveis, CTAs sutis.',
           },
           {
             role: 'user',
@@ -63,27 +81,33 @@ serve(async (req) => {
 
 Requisitos:
 - title: máx 60 caracteres, atraente, com palavra-chave principal
-- excerpt: 140-180 caracteres, resumo que desperte curiosidade
+- excerpt: 140-180 caracteres, gancho de leitura
+- metaDescription: 150-160 caracteres, otimizada para Google (pode reescrever o excerpt para SEO)
+- metaKeywords: 6-10 palavras-chave separadas por vírgula
+- tags: array de 4-6 tags curtas (palavras únicas ou frases de até 2 palavras)
 - category: uma de [Motion Design, Animação 2D, Animação 3D, Branding, Design Visual, Tendências, Tutoriais, Cases]
-- content: artigo em Markdown com 800-1100 palavras, estrutura: # H1 título, intro envolvente (2 parágrafos), 3-4 seções ## H2 com subitens em listas quando útil, exemplos práticos, ## Conclusão com CTA convidando ao contato/orçamento. Sem emojis exagerados.
-- imagePrompt: descrição visual em INGLÊS de 1-2 frases para gerar a imagem de capa (estilo: cinematic, modern motion design poster, dark background, vibrant accent, no text).`,
+- content: artigo em Markdown, 800-1100 palavras: # H1 título, intro (2 parágrafos), 3-4 seções ## H2 com listas/exemplos quando útil, ## Conclusão com CTA convidando ao orçamento.
+- imagePrompt: descrição visual em INGLÊS (1-2 frases) para a capa. Estilo: cinematic, modern motion design poster, dark background, vibrant accent, no text.`,
           },
         ],
         tools: [{
           type: 'function',
           function: {
             name: 'create_blog_post',
-            description: 'Retorna o post de blog estruturado',
+            description: 'Retorna o post de blog estruturado com SEO',
             parameters: {
               type: 'object',
               properties: {
                 title: { type: 'string' },
                 excerpt: { type: 'string' },
+                metaDescription: { type: 'string' },
+                metaKeywords: { type: 'string' },
+                tags: { type: 'array', items: { type: 'string' } },
                 category: { type: 'string' },
                 content: { type: 'string' },
                 imagePrompt: { type: 'string' },
               },
-              required: ['title', 'excerpt', 'category', 'content', 'imagePrompt'],
+              required: ['title', 'excerpt', 'metaDescription', 'metaKeywords', 'tags', 'category', 'content', 'imagePrompt'],
               additionalProperties: false,
             },
           },
@@ -121,6 +145,9 @@ Requisitos:
       title: post.title,
       slug,
       excerpt: post.excerpt,
+      metaDescription: post.metaDescription,
+      metaKeywords: post.metaKeywords,
+      tags: post.tags,
       content: post.content,
       category: finalCategory,
       imagePrompt: post.imagePrompt,

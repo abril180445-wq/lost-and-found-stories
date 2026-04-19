@@ -23,8 +23,12 @@ export type Database = {
           excerpt: string | null
           id: string
           image_url: string | null
+          meta_description: string | null
+          meta_keywords: string | null
+          og_image: string | null
           published: boolean | null
           slug: string
+          tags: string[] | null
           title: string
           updated_at: string | null
         }
@@ -36,8 +40,12 @@ export type Database = {
           excerpt?: string | null
           id?: string
           image_url?: string | null
+          meta_description?: string | null
+          meta_keywords?: string | null
+          og_image?: string | null
           published?: boolean | null
           slug: string
+          tags?: string[] | null
           title: string
           updated_at?: string | null
         }
@@ -49,8 +57,12 @@ export type Database = {
           excerpt?: string | null
           id?: string
           image_url?: string | null
+          meta_description?: string | null
+          meta_keywords?: string | null
+          og_image?: string | null
           published?: boolean | null
           slug?: string
+          tags?: string[] | null
           title?: string
           updated_at?: string | null
         }

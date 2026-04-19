@@ -50,6 +50,10 @@ interface BlogPost {
   published: boolean | null;
   created_at: string;
   updated_at: string;
+  meta_description?: string | null;
+  meta_keywords?: string | null;
+  tags?: string[] | null;
+  og_image?: string | null;
 }
 
 type IntegrationLog = {
@@ -92,7 +96,10 @@ const Admin = () => {
     image_url: '',
     category: 'Motion Design',
     author: 'Rorschach Motion',
-    published: true
+    published: true,
+    meta_description: '',
+    meta_keywords: '',
+    tags: [] as string[],
   });
 
   useEffect(() => {
@@ -240,6 +247,9 @@ const Admin = () => {
         category: data.category || 'Motion Design',
         author: 'Rorschach Motion',
         published: shouldSave,
+        meta_description: data.metaDescription || data.excerpt || '',
+        meta_keywords: data.metaKeywords || '',
+        tags: Array.isArray(data.tags) ? data.tags : [],
       };
 
       // Reflete no formulário (mesmo se autoSave)
@@ -461,14 +471,17 @@ const Admin = () => {
       image_url: post.image_url || '',
       category: post.category || 'Motion Design',
       author: post.author || 'Rorschach Motion',
-      published: post.published || false
+      published: post.published || false,
+      meta_description: post.meta_description || '',
+      meta_keywords: post.meta_keywords || '',
+      tags: post.tags || [],
     });
     setIsCreating(true);
     setIntegrationLogs([]);
   };
 
   const resetForm = () => {
-    setFormData({ title: '', slug: '', excerpt: '', content: '', image_url: '', category: 'Motion Design', author: 'Rorschach Motion', published: true });
+    setFormData({ title: '', slug: '', excerpt: '', content: '', image_url: '', category: 'Motion Design', author: 'Rorschach Motion', published: true, meta_description: '', meta_keywords: '', tags: [] });
     setEditingPost(null);
     setIsCreating(false);
     setAiTopic('');
@@ -650,6 +663,36 @@ const Admin = () => {
                   ))}
                 </div>
               )}
+            </div>
+
+            {/* 📅 Agendamento Semanal */}
+            <div className="bg-card border border-border rounded-xl p-5 mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <Clock className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-foreground">Agendamento semanal ativo</h3>
+                  <p className="text-sm text-muted-foreground">Toda segunda-feira às 09:00 (UTC) a IA gera, ilustra e publica um novo post automaticamente.</p>
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  toast.info('Disparando geração agendada agora...');
+                  try {
+                    const { error } = await supabase.functions.invoke('scheduled-blog-post', { body: {} });
+                    if (error) throw error;
+                    toast.success('✅ Post agendado gerado e publicado!');
+                    fetchPosts();
+                  } catch (e: any) {
+                    toast.error(e.message || 'Falha ao executar agendamento');
+                  }
+                }}
+              >
+                <Zap className="w-4 h-4 mr-1" /> Executar agora
+              </Button>
             </div>
 
             {/* Header & Search */}
@@ -864,7 +907,51 @@ const Admin = () => {
                 </Label>
               </div>
 
-              {/* Integrations Section */}
+              {/* SEO Section */}
+              <div className="space-y-4 p-4 border border-border rounded-lg bg-card">
+                <h3 className="font-semibold text-foreground text-sm uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                  <Search className="w-4 h-4" /> SEO
+                </h3>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="meta_description">Meta Description</Label>
+                    <span className="text-xs text-muted-foreground">{formData.meta_description.length}/160</span>
+                  </div>
+                  <Textarea
+                    id="meta_description"
+                    value={formData.meta_description}
+                    onChange={(e) => setFormData(prev => ({ ...prev, meta_description: e.target.value }))}
+                    placeholder="Descrição para o Google (150-160 caracteres)"
+                    rows={2}
+                    maxLength={200}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="meta_keywords">Palavras-chave (separadas por vírgula)</Label>
+                  <Input
+                    id="meta_keywords"
+                    value={formData.meta_keywords}
+                    onChange={(e) => setFormData(prev => ({ ...prev, meta_keywords: e.target.value }))}
+                    placeholder="motion design, animação, branding..."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="tags">Tags (separadas por vírgula)</Label>
+                  <Input
+                    id="tags"
+                    value={formData.tags.join(', ')}
+                    onChange={(e) => setFormData(prev => ({ ...prev, tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean) }))}
+                    placeholder="tutorial, after effects, 3d..."
+                  />
+                  {formData.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {formData.tags.map((t, i) => (
+                        <span key={i} className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">{t}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
               <div className="space-y-4">
                 <h3 className="font-semibold text-foreground text-sm uppercase tracking-wider text-muted-foreground">Integrações</h3>
                 
