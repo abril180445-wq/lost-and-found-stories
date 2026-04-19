@@ -877,7 +877,51 @@ const Admin = () => {
                 </Label>
               </div>
 
-              {/* Integrations Section */}
+              {/* SEO Section */}
+              <div className="space-y-4 p-4 border border-border rounded-lg bg-card">
+                <h3 className="font-semibold text-foreground text-sm uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                  <Search className="w-4 h-4" /> SEO
+                </h3>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="meta_description">Meta Description</Label>
+                    <span className="text-xs text-muted-foreground">{formData.meta_description.length}/160</span>
+                  </div>
+                  <Textarea
+                    id="meta_description"
+                    value={formData.meta_description}
+                    onChange={(e) => setFormData(prev => ({ ...prev, meta_description: e.target.value }))}
+                    placeholder="Descrição para o Google (150-160 caracteres)"
+                    rows={2}
+                    maxLength={200}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="meta_keywords">Palavras-chave (separadas por vírgula)</Label>
+                  <Input
+                    id="meta_keywords"
+                    value={formData.meta_keywords}
+                    onChange={(e) => setFormData(prev => ({ ...prev, meta_keywords: e.target.value }))}
+                    placeholder="motion design, animação, branding..."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="tags">Tags (separadas por vírgula)</Label>
+                  <Input
+                    id="tags"
+                    value={formData.tags.join(', ')}
+                    onChange={(e) => setFormData(prev => ({ ...prev, tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean) }))}
+                    placeholder="tutorial, after effects, 3d..."
+                  />
+                  {formData.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {formData.tags.map((t, i) => (
+                        <span key={i} className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">{t}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
               <div className="space-y-4">
                 <h3 className="font-semibold text-foreground text-sm uppercase tracking-wider text-muted-foreground">Integrações</h3>
                 
