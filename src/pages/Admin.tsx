@@ -33,7 +33,9 @@ import {
   RefreshCw,
   AlertCircle,
   CheckCircle2,
-  Clock
+  Clock,
+  Wand2,
+  Zap
 } from 'lucide-react';
 
 interface BlogPost {
