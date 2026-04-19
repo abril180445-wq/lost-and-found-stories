@@ -307,6 +307,7 @@ const Admin = () => {
     toast.success(`Lote concluído: ${success}/${batchCount} posts publicados`);
     setBatchProgress({ done: 0, total: 0, current: '' });
     resetForm();
+  };
 
   const publishToFacebook = async (title: string, excerpt: string, slug: string, imageUrl?: string, retryCount = 0): Promise<boolean> => {
     setIsPublishingToFacebook(true);
