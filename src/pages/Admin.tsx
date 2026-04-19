@@ -92,7 +92,10 @@ const Admin = () => {
     image_url: '',
     category: 'Motion Design',
     author: 'Rorschach Motion',
-    published: true
+    published: true,
+    meta_description: '',
+    meta_keywords: '',
+    tags: [] as string[],
   });
 
   useEffect(() => {
