@@ -547,6 +547,111 @@ const Admin = () => {
               </div>
             </div>
 
+            {/* 🚀 Modo 100% Automático */}
+            <div className="bg-gradient-to-br from-primary/5 to-primary/10 border-2 border-primary/30 rounded-xl p-6 mb-8">
+              <div className="flex items-center gap-2 mb-2">
+                <Wand2 className="w-5 h-5 text-primary" />
+                <h3 className="text-lg font-bold text-foreground">Geração 100% Automática</h3>
+                <span className="text-[10px] uppercase tracking-wider bg-primary text-primary-foreground px-2 py-0.5 rounded-full font-bold">IA</span>
+              </div>
+              <p className="text-sm text-muted-foreground mb-4">
+                A IA escreve título, resumo, artigo completo, categoria e gera a imagem de capa. Opcionalmente publica e dispara as integrações.
+              </p>
+
+              <div className="grid md:grid-cols-[1fr_auto] gap-3 mb-4">
+                <Input
+                  placeholder="Tópico (deixe vazio para a IA escolher um tema atual)"
+                  value={aiTopic}
+                  onChange={(e) => setAiTopic(e.target.value)}
+                  disabled={isAutoGenerating || isBatchRunning}
+                />
+                <Button
+                  onClick={() => generateAutoPost()}
+                  disabled={isAutoGenerating || isBatchRunning}
+                  size="lg"
+                  className="font-semibold"
+                >
+                  {isAutoGenerating ? (
+                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Gerando...</>
+                  ) : (
+                    <><Wand2 className="w-4 h-4 mr-2" /> Gerar {autoPublishOnGenerate ? '& Publicar' : 'Rascunho'}</>
+                  )}
+                </Button>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-3 mb-4 text-sm">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Switch checked={autoGenerateImage} onCheckedChange={setAutoGenerateImage} disabled={isAutoGenerating || isBatchRunning} />
+                  <span className="flex items-center gap-1"><Image className="w-3.5 h-3.5" /> Gerar imagem</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Switch checked={autoPublishOnGenerate} onCheckedChange={setAutoPublishOnGenerate} disabled={isAutoGenerating || isBatchRunning} />
+                  <span className="flex items-center gap-1"><Eye className="w-3.5 h-3.5" /> Publicar direto</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Switch checked={autoPublishFacebook} onCheckedChange={setAutoPublishFacebook} disabled={isAutoGenerating || isBatchRunning} />
+                  <span className="flex items-center gap-1"><Facebook className="w-3.5 h-3.5 text-blue-500" /> Auto-Facebook</span>
+                </label>
+              </div>
+
+              {/* Lote */}
+              <div className="border-t border-border pt-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Zap className="w-4 h-4 text-yellow-500" />
+                  <span className="text-sm font-semibold">Modo Lote</span>
+                  <span className="text-xs text-muted-foreground">— gera vários posts de uma vez (a IA escolhe os tópicos)</span>
+                </div>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="batchCount" className="text-sm">Qtd:</Label>
+                    <Input
+                      id="batchCount"
+                      type="number"
+                      min={1}
+                      max={10}
+                      value={batchCount}
+                      onChange={(e) => setBatchCount(parseInt(e.target.value) || 1)}
+                      className="w-20"
+                      disabled={isBatchRunning || isAutoGenerating}
+                    />
+                  </div>
+                  <Button
+                    onClick={runBatchGeneration}
+                    disabled={isBatchRunning || isAutoGenerating}
+                    variant="secondary"
+                  >
+                    {isBatchRunning ? (
+                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> {batchProgress.current} ({batchProgress.done}/{batchProgress.total})</>
+                    ) : (
+                      <><Zap className="w-4 h-4 mr-2" /> Gerar {batchCount} posts em lote</>
+                    )}
+                  </Button>
+                </div>
+                {isBatchRunning && (
+                  <div className="mt-3 w-full bg-muted rounded-full h-2 overflow-hidden">
+                    <div
+                      className="h-full bg-primary transition-all duration-500"
+                      style={{ width: `${(batchProgress.done / batchProgress.total) * 100}%` }}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Logs em tempo real */}
+              {integrationLogs.length > 0 && (isAutoGenerating || isBatchRunning) && (
+                <div className="mt-4 bg-background/50 border border-border rounded-lg p-3 max-h-32 overflow-y-auto">
+                  {integrationLogs.slice(0, 5).map((log, i) => (
+                    <div key={i} className="flex items-start gap-2 text-xs py-0.5">
+                      {log.status === 'success' && <CheckCircle2 className="w-3 h-3 text-green-500 mt-0.5 flex-shrink-0" />}
+                      {log.status === 'error' && <AlertCircle className="w-3 h-3 text-destructive mt-0.5 flex-shrink-0" />}
+                      {log.status === 'pending' && <Loader2 className="w-3 h-3 text-yellow-500 mt-0.5 animate-spin flex-shrink-0" />}
+                      <span className="text-muted-foreground"><span className="font-medium text-foreground">{log.service}:</span> {log.message}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {/* Header & Search */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
               <h2 className="text-2xl font-bold">Posts do Blog</h2>
