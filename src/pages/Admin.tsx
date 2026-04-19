@@ -665,6 +665,36 @@ const Admin = () => {
               )}
             </div>
 
+            {/* 📅 Agendamento Semanal */}
+            <div className="bg-card border border-border rounded-xl p-5 mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <Clock className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-foreground">Agendamento semanal ativo</h3>
+                  <p className="text-sm text-muted-foreground">Toda segunda-feira às 09:00 (UTC) a IA gera, ilustra e publica um novo post automaticamente.</p>
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  toast.info('Disparando geração agendada agora...');
+                  try {
+                    const { error } = await supabase.functions.invoke('scheduled-blog-post', { body: {} });
+                    if (error) throw error;
+                    toast.success('✅ Post agendado gerado e publicado!');
+                    fetchPosts();
+                  } catch (e: any) {
+                    toast.error(e.message || 'Falha ao executar agendamento');
+                  }
+                }}
+              >
+                <Zap className="w-4 h-4 mr-1" /> Executar agora
+              </Button>
+            </div>
+
             {/* Header & Search */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
               <h2 className="text-2xl font-bold">Posts do Blog</h2>
