@@ -243,6 +243,9 @@ const Admin = () => {
         category: data.category || 'Motion Design',
         author: 'Rorschach Motion',
         published: shouldSave,
+        meta_description: data.metaDescription || data.excerpt || '',
+        meta_keywords: data.metaKeywords || '',
+        tags: Array.isArray(data.tags) ? data.tags : [],
       };
 
       // Reflete no formulário (mesmo se autoSave)
