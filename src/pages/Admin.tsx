@@ -114,7 +114,11 @@ const Admin = () => {
   }, [user, isAdmin, isLoading, navigate, signOut]);
 
   useEffect(() => {
-    if (isAdmin) fetchPosts();
+    if (isAdmin) {
+      fetchPosts();
+      supabase.from('site_settings').select('value').eq('key', 'blog_cron_frequency').maybeSingle()
+        .then(({ data }) => { if (data?.value) setCronFrequency(data.value); });
+    }
   }, [isAdmin]);
 
   const addLog = useCallback((service: string, status: IntegrationLog['status'], message: string) => {
