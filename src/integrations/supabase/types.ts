@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_generation_log: {
+        Row: {
+          created_at: string
+          duration_ms: number | null
+          error_message: string | null
+          id: string
+          post_id: string | null
+          post_slug: string | null
+          post_title: string | null
+          source: string
+          status: string
+          topic: string | null
+        }
+        Insert: {
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          id?: string
+          post_id?: string | null
+          post_slug?: string | null
+          post_title?: string | null
+          source?: string
+          status: string
+          topic?: string | null
+        }
+        Update: {
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          id?: string
+          post_id?: string | null
+          post_slug?: string | null
+          post_title?: string | null
+          source?: string
+          status?: string
+          topic?: string | null
+        }
+        Relationships: []
+      }
       blog_posts: {
         Row: {
           author: string | null
