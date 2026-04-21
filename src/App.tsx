@@ -10,6 +10,7 @@ import Admin from "./pages/Admin";
 import AdminLogin from "./pages/AdminLogin";
 import AdminSettings from "./pages/AdminSettings";
 import AdminLeads from "./pages/AdminLeads";
+import AdminAIHistory from "./pages/AdminAIHistory";
 import BlogPost from "./pages/BlogPost";
 import Orcamento from "./pages/Orcamento";
 import Obrigado from "./pages/Obrigado";
@@ -39,6 +40,7 @@ const AppShell = () => {
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin/configuracoes" element={<AdminSettings />} />
         <Route path="/admin/leads" element={<AdminLeads />} />
+        <Route path="/admin/historico-ia" element={<AdminAIHistory />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>

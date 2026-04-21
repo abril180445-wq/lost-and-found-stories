@@ -87,6 +87,7 @@ const Admin = () => {
   const [batchCount, setBatchCount] = useState(3);
   const [isBatchRunning, setIsBatchRunning] = useState(false);
   const [batchProgress, setBatchProgress] = useState({ done: 0, total: 0, current: '' });
+  const [cronFrequency, setCronFrequency] = useState<string>('weekly');
 
   const [formData, setFormData] = useState({
     title: '',
@@ -113,7 +114,11 @@ const Admin = () => {
   }, [user, isAdmin, isLoading, navigate, signOut]);
 
   useEffect(() => {
-    if (isAdmin) fetchPosts();
+    if (isAdmin) {
+      fetchPosts();
+      supabase.from('site_settings').select('value').eq('key', 'blog_cron_frequency').maybeSingle()
+        .then(({ data }) => { if (data?.value) setCronFrequency(data.value); });
+    }
   }, [isAdmin]);
 
   const addLog = useCallback((service: string, status: IntegrationLog['status'], message: string) => {
@@ -665,34 +670,70 @@ const Admin = () => {
               )}
             </div>
 
-            {/* 📅 Agendamento Semanal */}
-            <div className="bg-card border border-border rounded-xl p-5 mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <Clock className="w-5 h-5 text-primary" />
+            {/* 📅 Agendamento Automático */}
+            <div className="bg-card border border-border rounded-xl p-5 mb-8">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Clock className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-foreground">Agendamento automático</h3>
+                    <p className="text-sm text-muted-foreground">A IA gera, ilustra e publica posts conforme a frequência escolhida.</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-bold text-foreground">Agendamento semanal ativo</h3>
-                  <p className="text-sm text-muted-foreground">Toda segunda-feira às 09:00 (UTC) a IA gera, ilustra e publica um novo post automaticamente.</p>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Button variant="outline" size="sm" onClick={() => navigate('/admin/historico-ia')}>
+                    <FileText className="w-4 h-4 mr-1" /> Histórico
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={async () => {
+                      toast.info('Disparando geração agendada agora...');
+                      try {
+                        const { error } = await supabase.functions.invoke('scheduled-blog-post', { body: { source: 'manual' } });
+                        if (error) throw error;
+                        toast.success('✅ Post agendado gerado e publicado!');
+                        fetchPosts();
+                      } catch (e: any) {
+                        toast.error(e.message || 'Falha ao executar agendamento');
+                      }
+                    }}
+                  >
+                    <Zap className="w-4 h-4 mr-1" /> Executar agora
+                  </Button>
                 </div>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={async () => {
-                  toast.info('Disparando geração agendada agora...');
-                  try {
-                    const { error } = await supabase.functions.invoke('scheduled-blog-post', { body: {} });
-                    if (error) throw error;
-                    toast.success('✅ Post agendado gerado e publicado!');
-                    fetchPosts();
-                  } catch (e: any) {
-                    toast.error(e.message || 'Falha ao executar agendamento');
-                  }
-                }}
-              >
-                <Zap className="w-4 h-4 mr-1" /> Executar agora
-              </Button>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                {[
+                  { id: 'daily', label: 'Diário' },
+                  { id: 'twice_week', label: '2x/semana' },
+                  { id: 'weekly', label: 'Semanal' },
+                  { id: 'biweekly', label: 'Quinzenal' },
+                  { id: 'monthly', label: 'Mensal' },
+                ].map(opt => (
+                  <Button
+                    key={opt.id}
+                    variant={cronFrequency === opt.id ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={async () => {
+                      setCronFrequency(opt.id);
+                      try {
+                        await supabase.functions.invoke('reschedule-blog-cron', { body: { frequency: opt.id } });
+                        toast.success(`Frequência atualizada: ${opt.label}`);
+                      } catch (e: any) {
+                        toast.error('Não foi possível salvar a frequência');
+                      }
+                    }}
+                  >
+                    {opt.label}
+                  </Button>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground mt-3">
+                ℹ️ Frequência atual: <span className="font-medium text-foreground">{cronFrequency || 'semanal (padrão)'}</span>. Próxima execução automática conforme cron configurado.
+              </p>
             </div>
 
             {/* Header & Search */}

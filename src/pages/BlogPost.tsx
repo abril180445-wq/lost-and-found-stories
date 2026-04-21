@@ -12,9 +12,13 @@ interface Post {
   content: string | null;
   excerpt: string | null;
   image_url: string | null;
+  og_image?: string | null;
   category: string | null;
   author: string | null;
   created_at: string;
+  meta_description?: string | null;
+  meta_keywords?: string | null;
+  tags?: string[] | null;
 }
 
 const BlogPost = () => {
@@ -49,29 +53,37 @@ const BlogPost = () => {
     if (!post) return;
 
     document.title = `${post.title} | Rorschach Motion`;
-    
-    const updateMetaTag = (property: string, content: string) => {
-      let meta = document.querySelector(`meta[property="${property}"]`) as HTMLMetaElement;
+
+    const setMeta = (selector: string, attr: 'name' | 'property', key: string, content: string) => {
+      let meta = document.querySelector(selector) as HTMLMetaElement | null;
       if (!meta) {
         meta = document.createElement('meta');
-        meta.setAttribute('property', property);
+        meta.setAttribute(attr, key);
         document.head.appendChild(meta);
       }
       meta.content = content;
     };
+    const updateMetaTag = (property: string, content: string) =>
+      setMeta(`meta[property="${property}"]`, 'property', property, content);
+    const updateNamedMeta = (name: string, content: string) =>
+      setMeta(`meta[name="${name}"]`, 'name', name, content);
 
     const currentUrl = window.location.href;
-    const imageUrl = post.image_url || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=1200&h=630&fit=crop';
+    const imageUrl = post.og_image || post.image_url || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=1200&h=630&fit=crop';
+    const description = post.meta_description || post.excerpt || 'Leia mais no blog da Rorschach Motion';
+
+    updateNamedMeta('description', description);
+    if (post.meta_keywords) updateNamedMeta('keywords', post.meta_keywords);
 
     updateMetaTag('og:title', post.title);
-    updateMetaTag('og:description', post.excerpt || 'Leia mais no blog da Rorschach Motion');
+    updateMetaTag('og:description', description);
     updateMetaTag('og:image', imageUrl);
     updateMetaTag('og:url', currentUrl);
     updateMetaTag('og:type', 'article');
     updateMetaTag('og:site_name', 'Rorschach Motion');
     updateMetaTag('twitter:card', 'summary_large_image');
     updateMetaTag('twitter:title', post.title);
-    updateMetaTag('twitter:description', post.excerpt || 'Leia mais no blog da Rorschach Motion');
+    updateMetaTag('twitter:description', description);
     updateMetaTag('twitter:image', imageUrl);
 
     // JSON-LD for article
@@ -81,8 +93,9 @@ const BlogPost = () => {
       "@context": "https://schema.org",
       "@type": "BlogPosting",
       "headline": post.title,
-      "description": post.excerpt,
+      "description": post.meta_description || post.excerpt,
       "image": imageUrl,
+      "keywords": post.meta_keywords || (post.tags || []).join(', ') || undefined,
       "author": { "@type": "Organization", "name": post.author || "Rorschach Motion" },
       "publisher": { "@type": "Organization", "name": "Rorschach Motion" },
       "datePublished": post.created_at,
